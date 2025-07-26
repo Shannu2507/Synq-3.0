@@ -16,6 +16,7 @@ export default function PostFeed() {
   useEffect(() => {
     async function loadPosts() {
       const data = await fetchPosts();
+      console.log("📦 Posts fetched from Supabase:", data); // Debug log
       setPosts(data);
     }
     loadPosts();
@@ -25,7 +26,7 @@ export default function PostFeed() {
     <div className="space-y-4">
       <h2 className="text-xl font-bold mb-4">Latest Posts</h2>
       {posts.length === 0 ? (
-        <p>No posts yet.</p>
+        <p className="text-gray-500">No posts yet.</p>
       ) : (
         posts.map((post) => (
           <div key={post.id} className="p-4 rounded-xl shadow bg-white">
@@ -37,4 +38,3 @@ export default function PostFeed() {
     </div>
   );
 }
-
