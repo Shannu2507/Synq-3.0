@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchPosts } from "@/lib/fetchPosts";
+import { supabase } from "@/lib/supabaseClient"; // ✅ Fix: missing import
 
 type Post = {
   id: string;
@@ -20,30 +21,29 @@ export default function PostFeed() {
       setPosts(data);
       setLoading(false);
     }
-
     loadPosts();
 
-    // Realtime listener (already working)
+    // ✅ Realtime listener
     const channel = supabase
       .channel("public:posts")
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "posts" },
         (payload) => {
-          loadPosts(); // Re-fetch on new post
+          const newPost = payload.new as Post;
+          setPosts((prev) => [newPost, ...prev]);
         }
       )
       .subscribe();
 
     return () => {
-      channel.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, []);
 
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold mb-4">Latest Posts</h2>
-
       {loading ? (
         <p className="text-gray-500">Loading posts...</p>
       ) : posts.length === 0 ? (
