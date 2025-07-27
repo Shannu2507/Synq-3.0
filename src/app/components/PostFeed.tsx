@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { fetchPosts } from "@/lib/fetchPosts";
-import { supabase } from "@/lib/supabaseClient";
 
 type Post = {
   id: string;
@@ -13,43 +12,41 @@ type Post = {
 
 export default function PostFeed() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch posts initially
   useEffect(() => {
     async function loadPosts() {
       const data = await fetchPosts();
       setPosts(data);
+      setLoading(false);
     }
 
     loadPosts();
 
-    // 👇 Real-time listener for new posts
+    // Realtime listener (already working)
     const channel = supabase
-      .channel("posts-realtime")
+      .channel("public:posts")
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "posts",
-        },
+        { event: "INSERT", schema: "public", table: "posts" },
         (payload) => {
-          console.log("🔁 New post inserted:", payload.new);
-          setPosts((prev) => [payload.new as Post, ...prev]);
+          loadPosts(); // Re-fetch on new post
         }
       )
       .subscribe();
 
-    // Cleanup
     return () => {
-      supabase.removeChannel(channel);
+      channel.unsubscribe();
     };
   }, []);
 
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold mb-4">Latest Posts</h2>
-      {posts.length === 0 ? (
+
+      {loading ? (
+        <p className="text-gray-500">Loading posts...</p>
+      ) : posts.length === 0 ? (
         <p>No posts yet.</p>
       ) : (
         posts.map((post) => (
