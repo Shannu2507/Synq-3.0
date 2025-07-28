@@ -1,97 +1,83 @@
 "use client"
 
 import { useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { supabase } from "../../supabaseClient"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 export default function CreatePost() {
-  const [author, setAuthor] = useState("")
   const [caption, setCaption] = useState("")
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [uploading, setUploading] = useState(false)
+  const [name, setName] = useState("")
+  const [image, setImage] = useState<File | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const handlePost = async () => {
-    if (!caption && !imageFile) {
-      alert("Please add a caption or an image")
-      return
-    }
+    if (!caption && !image) return
+    setLoading(true)
 
-    if (!author) {
-      alert("Please enter your name")
-      return
-    }
-
-    setUploading(true)
-
-    let imageUrl = ""
-
-    if (imageFile) {
-      const fileExt = imageFile.name.split('.').pop()
+    let imageUrl = null
+    if (image) {
+      const fileExt = image.name.split(".").pop()
       const fileName = `${Date.now()}.${fileExt}`
-      const filePath = `${fileName}`
+      const { data, error } = await supabase.storage
+        .from("images")
+        .upload(fileName, image)
 
-      const { error: uploadError } = await supabase.storage
-        .from("post-images")
-        .upload(filePath, imageFile)
-
-      if (uploadError) {
-        alert("Image upload failed")
-        setUploading(false)
-        return
+      if (data) {
+        const { data: urlData } = supabase.storage
+          .from("images")
+          .getPublicUrl(fileName)
+        imageUrl = urlData?.publicUrl
       }
-
-      const { data: imageData } = supabase.storage
-        .from("post-images")
-        .getPublicUrl(filePath)
-
-      imageUrl = imageData?.publicUrl || ""
     }
 
-    const { error: insertError } = await supabase
-      .from("posts")
-      .insert([{ caption, image_url: imageUrl, author }])
+    await supabase.from("posts").insert([
+      {
+        caption,
+        image_url: imageUrl,
+        name: name || "Anonymous"
+      },
+    ])
 
-    if (insertError) {
-      alert("Post creation failed")
-    } else {
-      alert("Post created!")
-      setCaption("")
-      setImageFile(null)
-      setAuthor("")
-    }
-
-    setUploading(false)
+    setCaption("")
+    setName("")
+    setImage(null)
+    setLoading(false)
   }
 
   return (
-    <div className="p-4 border rounded-lg shadow-md bg-white w-full max-w-md mx-auto">
-      <h2 className="text-xl font-bold mb-4">Create Post</h2>
-      <input
+    <div className="p-4 border rounded-2xl shadow-xl bg-gradient-to-br from-white via-zinc-100 to-white dark:from-[#1a1a1a] dark:to-[#2c2c2c] w-full max-w-xl mx-auto my-6 backdrop-blur-md">
+      <h2 className="text-2xl font-bold mb-4 text-zinc-800 dark:text-zinc-100">Drop your vibe</h2>
+
+      <Input
         type="text"
-        placeholder="Your name"
-        value={author}
-        onChange={(e) => setAuthor(e.target.value)}
-        className="w-full border rounded p-2 mb-3"
+        placeholder="Your name (optional)"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className="mb-3 rounded-xl border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white"
       />
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-        className="mb-3"
-      />
+
       <textarea
-        placeholder="Write a caption..."
-        className="w-full border rounded p-2 mb-3"
+        placeholder="What's happening?"
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
+        rows={3}
+        className="w-full p-3 mb-3 rounded-xl border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
-      <button
+
+      <Input
+        type="file"
+        onChange={(e) => setImage(e.target.files?.[0] || null)}
+        className="mb-4 file:bg-blue-600 file:text-white file:rounded-full file:px-4 file:py-1 file:border-none dark:file:bg-blue-500"
+      />
+
+      <Button
         onClick={handlePost}
-        disabled={uploading}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        disabled={loading || (!caption && !image)}
+        className="w-full py-2 rounded-xl bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-pink-600 hover:to-purple-600 transition-colors text-white font-semibold shadow-md disabled:opacity-60"
       >
-        {uploading ? "Posting..." : "Post"}
-      </button>
+        {loading ? "Posting..." : "Post it 🔥"}
+      </Button>
     </div>
   )
 }
-
