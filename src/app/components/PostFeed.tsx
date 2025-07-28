@@ -8,6 +8,7 @@ interface Post {
   caption?: string
   image_url?: string
   author?: string
+  likes?: number
   created_at: string
 }
 
@@ -15,22 +16,8 @@ export default function PostFeed() {
   const [posts, setPosts] = useState<Post[]>([])
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      const { data, error } = await supabase
-        .from("posts")
-        .select("*")
-        .order("created_at", { ascending: false })
-
-      if (error) {
-        console.error("Error fetching posts:", error)
-      } else {
-        setPosts(data || [])
-      }
-    }
-
     fetchPosts()
 
-    // Optional: Realtime listener
     const channel = supabase
       .channel("public:posts")
       .on(
@@ -40,8 +27,7 @@ export default function PostFeed() {
           schema: "public",
           table: "posts",
         },
-        (payload) => {
-          console.log("Realtime change:", payload)
+        () => {
           fetchPosts()
         }
       )
@@ -51,6 +37,30 @@ export default function PostFeed() {
       channel.unsubscribe()
     }
   }, [])
+
+  const fetchPosts = async () => {
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*")
+      .order("created_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching posts:", error)
+    } else {
+      setPosts(data || [])
+    }
+  }
+
+  const handleLike = async (postId: string, currentLikes: number = 0) => {
+    const { error } = await supabase
+      .from("posts")
+      .update({ likes: currentLikes + 1 })
+      .eq("id", postId)
+
+    if (error) {
+      console.error("Error liking post:", error)
+    }
+  }
 
   return (
     <div className="w-full max-w-xl mx-auto mt-6 space-y-4">
@@ -73,8 +83,14 @@ export default function PostFeed() {
                 {post.author || "Anonymous"}
               </div>
               {post.caption && (
-                <p className="text-sm text-gray-800">{post.caption}</p>
+                <p className="text-sm text-gray-800 mb-2">{post.caption}</p>
               )}
+              <button
+                onClick={() => handleLike(post.id, post.likes || 0)}
+                className="text-sm text-red-500 hover:text-red-600"
+              >
+                ❤️ Like ({post.likes || 0})
+              </button>
             </div>
           </div>
         ))}
