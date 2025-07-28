@@ -2,7 +2,7 @@
 
 import CreatePost from "./components/CreatePost"
 import PostFeed from "./components/PostFeed"
-import ThemeProvider from "../components/ThemeProvider" // ✅ CORRECTED IMPORT
+import ThemeProvider from "../../components/ThemeProvider" // ✅ FIXED PATH
 
 export default function App() {
   return (
@@ -14,4 +14,3 @@ export default function App() {
     </ThemeProvider>
   )
 }
-
