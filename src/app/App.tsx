@@ -2,7 +2,7 @@
 
 import CreatePost from "./components/CreatePost"
 import PostFeed from "./components/PostFeed"
-import ThemeProvider from "./components/ThemeProvider"
+import ThemeProvider from "../components/ThemeProvider"
 
 export default function App() {
   return (
