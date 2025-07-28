@@ -5,8 +5,9 @@ import { supabase } from "@/lib/supabaseClient"
 
 interface Post {
   id: string
-  caption: string
-  image_url: string
+  caption?: string
+  image_url?: string
+  author?: string
   created_at: string
 }
 
@@ -29,7 +30,7 @@ export default function PostFeed() {
 
     fetchPosts()
 
-    // Realtime listener (optional: for future auto-refresh)
+    // Optional: Realtime listener
     const channel = supabase
       .channel("public:posts")
       .on(
@@ -53,23 +54,30 @@ export default function PostFeed() {
 
   return (
     <div className="w-full max-w-xl mx-auto mt-6 space-y-4">
-      {posts.map((post) => (
-        <div
-          key={post.id}
-          className="bg-white shadow rounded-lg overflow-hidden border"
-        >
-          {post.image_url && (
-            <img
-              src={post.image_url}
-              alt="Post"
-              className="w-full object-cover"
-            />
-          )}
-          <div className="p-4">
-            <p className="text-sm text-gray-800">{post.caption}</p>
+      {posts
+        .filter((post) => post.caption || post.image_url)
+        .map((post) => (
+          <div
+            key={post.id}
+            className="bg-white shadow rounded-lg overflow-hidden border"
+          >
+            {post.image_url && (
+              <img
+                src={post.image_url}
+                alt="Post"
+                className="w-full object-cover"
+              />
+            )}
+            <div className="p-4">
+              <div className="text-sm font-semibold text-gray-700 mb-1">
+                {post.author || "Anonymous"}
+              </div>
+              {post.caption && (
+                <p className="text-sm text-gray-800">{post.caption}</p>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
     </div>
   )
 }
