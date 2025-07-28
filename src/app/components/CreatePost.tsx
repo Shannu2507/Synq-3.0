@@ -9,29 +9,37 @@ export default function CreatePost() {
   const [uploading, setUploading] = useState(false)
 
   const handlePost = async () => {
-    if (!imageFile || !caption) return alert("Fill all fields")
-
-    setUploading(true)
-
-    const fileExt = imageFile.name.split('.').pop()
-    const fileName = `${Date.now()}.${fileExt}`
-    const filePath = `${fileName}`
-
-    const { error: uploadError } = await supabase.storage
-      .from("post-images")
-      .upload(filePath, imageFile)
-
-    if (uploadError) {
-      alert("Image upload failed")
-      setUploading(false)
+    if (!caption && !imageFile) {
+      alert("Please add a caption or an image")
       return
     }
 
-    const { data: imageData } = supabase.storage
-      .from("post-images")
-      .getPublicUrl(filePath)
+    setUploading(true)
 
-    const imageUrl = imageData?.publicUrl
+    let imageUrl = ""
+
+    // If image is selected, upload it
+    if (imageFile) {
+      const fileExt = imageFile.name.split('.').pop()
+      const fileName = `${Date.now()}.${fileExt}`
+      const filePath = `${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from("post-images")
+        .upload(filePath, imageFile)
+
+      if (uploadError) {
+        alert("Image upload failed")
+        setUploading(false)
+        return
+      }
+
+      const { data: imageData } = supabase.storage
+        .from("post-images")
+        .getPublicUrl(filePath)
+
+      imageUrl = imageData?.publicUrl || ""
+    }
 
     const { error: insertError } = await supabase
       .from("posts")
