@@ -35,7 +35,7 @@ export default function CreatePost() {
       {
         caption,
         image_url: imageUrl,
-        name: name || "Anonymous"
+        name: name || "Anonymous",
       },
     ])
 
@@ -47,16 +47,14 @@ export default function CreatePost() {
 
   return (
     <div className="p-4 border rounded-2xl shadow-xl bg-gradient-to-br from-white via-zinc-100 to-white dark:from-[#1a1a1a] dark:to-[#2c2c2c] w-full max-w-xl mx-auto my-6 backdrop-blur-md">
-      <h2 className="text-2xl font-bold mb-4 text-zinc-800 dark:text-zinc-100">
-        Drop your vibe
-      </h2>
+      <h2 className="text-2xl font-bold mb-4 text-zinc-800 dark:text-zinc-100">Drop your vibe</h2>
 
       <Input
         type="text"
         placeholder="Your name (optional)"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="mb-3 rounded-xl border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white"
+        className="mb-3"
       />
 
       <textarea
@@ -82,4 +80,6 @@ export default function CreatePost() {
       </Button>
     </div>
   )
+}
+
 }
