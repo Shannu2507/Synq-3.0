@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { supabase } from "../../supabaseClient"
+import { supabase } from "@/lib/supabaseClient"
 import PostCard from "./PostCard"
 
 interface Post {
@@ -15,14 +15,12 @@ export default function PostFeed() {
   const [posts, setPosts] = useState<Post[]>([])
 
   const fetchPosts = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("posts")
       .select("*")
       .order("created_at", { ascending: false })
 
-    if (data) {
-      setPosts(data)
-    }
+    if (data) setPosts(data)
   }
 
   useEffect(() => {
