@@ -4,6 +4,7 @@ import { useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 
 export default function CreatePost() {
+  const [author, setAuthor] = useState("")
   const [caption, setCaption] = useState("")
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -14,11 +15,15 @@ export default function CreatePost() {
       return
     }
 
+    if (!author) {
+      alert("Please enter your name")
+      return
+    }
+
     setUploading(true)
 
     let imageUrl = ""
 
-    // If image is selected, upload it
     if (imageFile) {
       const fileExt = imageFile.name.split('.').pop()
       const fileName = `${Date.now()}.${fileExt}`
@@ -43,7 +48,7 @@ export default function CreatePost() {
 
     const { error: insertError } = await supabase
       .from("posts")
-      .insert([{ caption, image_url: imageUrl }])
+      .insert([{ caption, image_url: imageUrl, author }])
 
     if (insertError) {
       alert("Post creation failed")
@@ -51,6 +56,7 @@ export default function CreatePost() {
       alert("Post created!")
       setCaption("")
       setImageFile(null)
+      setAuthor("")
     }
 
     setUploading(false)
@@ -59,6 +65,13 @@ export default function CreatePost() {
   return (
     <div className="p-4 border rounded-lg shadow-md bg-white w-full max-w-md mx-auto">
       <h2 className="text-xl font-bold mb-4">Create Post</h2>
+      <input
+        type="text"
+        placeholder="Your name"
+        value={author}
+        onChange={(e) => setAuthor(e.target.value)}
+        className="w-full border rounded p-2 mb-3"
+      />
       <input
         type="file"
         accept="image/*"
@@ -81,3 +94,4 @@ export default function CreatePost() {
     </div>
   )
 }
+
