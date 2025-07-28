@@ -32,20 +32,12 @@ export default function PostFeed() {
 
     const postChannel = supabase
       .channel("public:posts")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "posts" },
-        fetchPosts
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, fetchPosts)
       .subscribe()
 
     const commentChannel = supabase
       .channel("public:comments")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "comments" },
-        fetchComments
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "comments" }, fetchComments)
       .subscribe()
 
     return () => {
@@ -59,7 +51,6 @@ export default function PostFeed() {
       .from("posts")
       .select("*")
       .order("created_at", { ascending: false })
-
     if (!error && data) setPosts(data)
   }
 
@@ -68,8 +59,19 @@ export default function PostFeed() {
       .from("comments")
       .select("*")
       .order("created_at", { ascending: true })
-
     if (!error && data) setComments(data)
+  }
+
+  const handleLike = async (postId: string) => {
+    const post = posts.find((p) => p.id === postId)
+    if (!post) return
+
+    const { error } = await supabase
+      .from("posts")
+      .update({ likes: (post.likes || 0) + 1 })
+      .eq("id", postId)
+
+    if (!error) fetchPosts()
   }
 
   const handleCommentChange = (postId: string, value: string) => {
@@ -107,24 +109,24 @@ export default function PostFeed() {
       {posts
         .filter((post) => post.caption || post.image_url)
         .map((post) => (
-          <div
-            key={post.id}
-            className="bg-white shadow rounded-lg overflow-hidden border"
-          >
+          <div key={post.id} className="bg-white shadow rounded-lg overflow-hidden border">
             {post.image_url && (
-              <img
-                src={post.image_url}
-                alt="Post"
-                className="w-full object-cover"
-              />
+              <img src={post.image_url} alt="Post" className="w-full object-cover" />
             )}
             <div className="p-4">
               <div className="text-sm font-semibold text-gray-700 mb-1">
                 {post.author || "Anonymous"}
               </div>
-              {post.caption && (
-                <p className="text-sm text-gray-800 mb-2">{post.caption}</p>
-              )}
+
+              {post.caption && <p className="text-sm text-gray-800 mb-2">{post.caption}</p>}
+
+              <button
+                onClick={() => handleLike(post.id)}
+                className="text-sm text-red-500 hover:underline mr-2"
+              >
+                ❤️ {post.likes || 0} Like{(post.likes || 0) === 1 ? "" : "s"}
+              </button>
+
               <div className="mt-3">
                 <input
                   type="text"
@@ -136,9 +138,7 @@ export default function PostFeed() {
                 <textarea
                   placeholder="Write a comment..."
                   value={newComments[post.id] || ""}
-                  onChange={(e) =>
-                    handleCommentChange(post.id, e.target.value)
-                  }
+                  onChange={(e) => handleCommentChange(post.id, e.target.value)}
                   className="w-full text-sm px-2 py-1 border rounded"
                   rows={2}
                 />
@@ -152,13 +152,8 @@ export default function PostFeed() {
 
               <div className="mt-3 space-y-1">
                 {getCommentsForPost(post.id).map((comment) => (
-                  <div
-                    key={comment.id}
-                    className="text-sm text-gray-700 border-t pt-2"
-                  >
-                    <span className="font-semibold mr-1">
-                      {comment.author || "Anon"}:
-                    </span>
+                  <div key={comment.id} className="text-sm text-gray-700 border-t pt-2">
+                    <span className="font-semibold mr-1">{comment.author || "Anon"}:</span>
                     {comment.text}
                   </div>
                 ))}
