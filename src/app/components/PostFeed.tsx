@@ -1,29 +1,35 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { fetchPosts } from "@/lib/fetchPosts";
-import { formatDistanceToNow } from "date-fns";
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabaseClient"
 
-type Post = {
-  id: string;
-  content: string;
-  author: string;
-  created_at: string;
-};
+interface Post {
+  id: string
+  caption: string
+  image_url: string
+  created_at: string
+}
 
 export default function PostFeed() {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<Post[]>([])
 
   useEffect(() => {
-    async function loadPosts() {
-      const data = await fetchPosts();
-      console.log("📦 Posts fetched from Supabase:", data);
-      setPosts(data);
+    const fetchPosts = async () => {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        console.error("Error fetching posts:", error)
+      } else {
+        setPosts(data || [])
+      }
     }
 
-    loadPosts();
+    fetchPosts()
 
-    // Realtime listener (already working)
+    // Realtime listener (optional: for future auto-refresh)
     const channel = supabase
       .channel("public:posts")
       .on(
@@ -34,32 +40,36 @@ export default function PostFeed() {
           table: "posts",
         },
         (payload) => {
-          console.log("🔁 New realtime payload:", payload);
-          loadPosts();
+          console.log("Realtime change:", payload)
+          fetchPosts()
         }
       )
-      .subscribe();
+      .subscribe()
 
     return () => {
-      channel.unsubscribe();
-    };
-  }, []);
+      channel.unsubscribe()
+    }
+  }, [])
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold mb-4">Latest Posts</h2>
-      {posts.length === 0 ? (
-        <p>No posts yet.</p>
-      ) : (
-        posts.map((post) => (
-          <div key={post.id} className="p-4 rounded-xl shadow bg-white">
-            <p className="text-gray-800">{post.content}</p>
-            <p className="text-sm text-gray-500 mt-2">
-              By {post.author} • {formatDistanceToNow(new Date(post.created_at))} ago
-            </p>
+    <div className="w-full max-w-xl mx-auto mt-6 space-y-4">
+      {posts.map((post) => (
+        <div
+          key={post.id}
+          className="bg-white shadow rounded-lg overflow-hidden border"
+        >
+          {post.image_url && (
+            <img
+              src={post.image_url}
+              alt="Post"
+              className="w-full object-cover"
+            />
+          )}
+          <div className="p-4">
+            <p className="text-sm text-gray-800">{post.caption}</p>
           </div>
-        ))
-      )}
+        </div>
+      ))}
     </div>
-  );
+  )
 }
