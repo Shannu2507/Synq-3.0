@@ -1,18 +1,16 @@
-import Sidebar from "./components/Sidebar"
-import PostFeed from "./components/PostFeed"
-import ProfilePage from "./components/ProfilePage"
-import CreatePost from "./components/CreatePost"
+"use client"
 
-function App() {
+import CreatePost from "./components/CreatePost"
+import PostFeed from "./components/PostFeed"
+import ThemeProvider from "./components/ThemeProvider"
+
+export default function App() {
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-1 p-6 space-y-6">
+    <ThemeProvider>
+      <div className="min-h-screen">
         <CreatePost />
         <PostFeed />
       </div>
-    </div>
+    </ThemeProvider>
   )
 }
-
-export default App
