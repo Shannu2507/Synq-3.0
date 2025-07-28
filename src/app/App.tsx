@@ -1,15 +1,19 @@
 "use client"
 
-import CreatePost from "./components/CreatePost"
 import PostFeed from "./components/PostFeed"
-import ThemeProvider from "../../components/ThemeProvider" // ✅ FIXED PATH
+import Sidebar from "./components/Sidebar"
+import CreatePost from "./components/CreatePost"
+import ThemeProvider from "../components/ThemeProvider" // ✅ Updated path
 
 export default function App() {
   return (
     <ThemeProvider>
-      <div className="min-h-screen">
-        <CreatePost />
-        <PostFeed />
+      <div className="flex h-screen">
+        <Sidebar />
+        <div className="flex-1 overflow-y-auto">
+          <CreatePost />
+          <PostFeed />
+        </div>
       </div>
     </ThemeProvider>
   )
