@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Heart, MessageCircle } from 'lucide-react';
 
@@ -22,6 +22,7 @@ export default function PostCard({
   const [likeCount, setLikeCount] = useState(likes);
   const [showCommentBox, setShowCommentBox] = useState(false);
   const [comment, setComment] = useState('');
+  const [comments, setComments] = useState<string[]>([]);
 
   const handleLike = async () => {
     const newLikes = likeCount + 1;
@@ -41,11 +42,29 @@ export default function PostCard({
 
     if (!error) {
       setComment('');
-      setShowCommentBox(false);
+      fetchComments(); // Refresh comment list
     } else {
       console.error('Comment error:', error.message);
     }
   };
+
+  const fetchComments = async () => {
+    const { data, error } = await supabase
+      .from('comments')
+      .select('text')
+      .eq('post_id', id)
+      .order('created_at', { ascending: true });
+
+    if (!error && data) {
+      setComments(data.map((c) => c.text));
+    }
+  };
+
+  useEffect(() => {
+    if (showCommentBox) {
+      fetchComments();
+    }
+  }, [showCommentBox]);
 
   return (
     <div className="bg-[#111] text-white rounded-lg shadow-md p-4 mb-4">
@@ -86,6 +105,16 @@ export default function PostCard({
           >
             Comment
           </button>
+
+          {comments.length > 0 && (
+            <div className="mt-4 space-y-2 text-sm text-gray-300">
+              {comments.map((c, idx) => (
+                <div key={idx} className="bg-[#1a1a1a] p-2 rounded">
+                  {c}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
