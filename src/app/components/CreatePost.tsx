@@ -7,45 +7,56 @@ export default function CreatePost() {
   const [name, setName] = useState('');
   const [caption, setCaption] = useState('');
   const [image, setImage] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    let imageUrl: string | null = null;
+    try {
+      let imageUrl: string | null = null;
 
-    if (image) {
-      const fileName = `${Date.now()}-${image.name}`;
-      const { data, error: uploadError } = await supabase.storage
-        .from('images')
-        .upload(fileName, image);
+      // Upload image if one is selected
+      if (image) {
+        const fileName = `${Date.now()}-${image.name}`;
+        const { data, error: uploadError } = await supabase.storage
+          .from('images') // make sure this bucket exists
+          .upload(fileName, image);
 
-      if (uploadError) {
-        console.error('Image upload failed:', uploadError.message);
-        return;
+        if (uploadError) {
+          console.error('Image upload error:', uploadError.message);
+          setLoading(false);
+          return;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('images')
+          .getPublicUrl(fileName);
+
+        imageUrl = urlData.publicUrl;
       }
 
-      const { data: urlData } = supabase.storage
-        .from('images')
-        .getPublicUrl(fileName);
+      const { error } = await supabase.from('posts').insert([
+        {
+          name: name.trim() || 'Anonymous',
+          caption: caption.trim(),
+          image_url: imageUrl,
+          likes: 0
+        }
+      ]);
 
-      imageUrl = urlData.publicUrl;
-    }
-
-    const { error } = await supabase.from('posts').insert([
-      {
-        name: name.trim() || 'Anonymous',
-        caption,
-        image_url: imageUrl,
-        likes: 0
+      if (error) {
+        console.error('Post insert error:', error.message);
+      } else {
+        console.log('Post uploaded ✅');
+        setName('');
+        setCaption('');
+        setImage(null);
       }
-    ]);
-
-    if (error) {
-      console.error('Post failed:', error.message);
-    } else {
-      setName('');
-      setCaption('');
-      setImage(null);
+    } catch (err) {
+      console.error('Unhandled error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -73,9 +84,10 @@ export default function CreatePost() {
       />
       <button
         type="submit"
-        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-50"
+        disabled={loading}
       >
-        Post
+        {loading ? 'Posting...' : 'Post'}
       </button>
     </form>
   );
