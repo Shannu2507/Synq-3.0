@@ -1,18 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from './lib/supabaseClient'
+import { useRouter } from 'next/navigation'
+import { supabase } from '../lib/supabaseClient'
 import Sidebar from './components/Sidebar'
 import PostFeed from './components/PostFeed'
 import CreatePost from './components/CreatePost'
-import { useRouter } from 'next/navigation'
 
 export default function App() {
   const [user, setUser] = useState(null)
   const router = useRouter()
 
   useEffect(() => {
-    const getUser = async () => {
+    const checkUser = async () => {
       const { data, error } = await supabase.auth.getUser()
       if (!data?.user) {
         router.push('/login')
@@ -21,10 +21,10 @@ export default function App() {
       }
     }
 
-    getUser()
+    checkUser()
   }, [])
 
-  if (!user) return null // or loading indicator
+  if (!user) return null
 
   return (
     <div className="min-h-screen bg-black text-white flex">
