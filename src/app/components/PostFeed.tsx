@@ -1,57 +1,45 @@
-"use client"
+'use client';
 
-import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
-import PostCard from "./PostCard"
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+import PostCard from './PostCard';
 
 interface Post {
-  id: string
-  name?: string
-  caption: string
-  image_url?: string
+  id: number;
+  name: string;
+  caption: string;
+  image_url?: string;
+  likes?: number;
 }
 
 export default function PostFeed() {
-  const [posts, setPosts] = useState<Post[]>([])
-
-  const fetchPosts = async () => {
-    const { data } = await supabase
-      .from("posts")
-      .select("*")
-      .order("created_at", { ascending: false })
-
-    if (data) setPosts(data)
-  }
+  const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    fetchPosts()
+    const fetchPosts = async () => {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    const channel = supabase
-      .channel("realtime-posts")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "posts" },
-        (payload) => {
-          setPosts((prev) => [payload.new as Post, ...prev])
-        }
-      )
-      .subscribe()
+      if (!error && data) setPosts(data);
+    };
 
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [])
+    fetchPosts();
+  }, []);
 
   return (
-    <div className="space-y-4 px-2">
+    <div>
       {posts.map((post) => (
         <PostCard
           key={post.id}
+          id={post.id}
           name={post.name}
           caption={post.caption}
           image_url={post.image_url}
+          likes={post.likes}
         />
       ))}
     </div>
-  )
+  );
 }
