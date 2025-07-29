@@ -1,21 +1,27 @@
+'use client';
+
 interface PostCardProps {
-  name?: string
-  caption: string
-  image_url?: string
+  name: string;
+  caption: string;
+  image_url?: string;
 }
 
-export default function PostCard({ name = "Anonymous", caption, image_url }: PostCardProps) {
+export default function PostCard({ name, caption, image_url }: PostCardProps) {
   return (
-    <div className="rounded-2xl p-4 bg-gradient-to-br from-white via-zinc-100 to-white dark:from-zinc-900 dark:to-zinc-800 shadow-md transition-all">
-      <div className="font-semibold text-zinc-800 dark:text-zinc-100 mb-1">{name}</div>
-      <p className="text-zinc-600 dark:text-zinc-300 mb-2">{caption}</p>
+    <div className="bg-[#111] text-white rounded-lg shadow-md p-4 mb-4">
+      <p className="text-sm text-gray-400 mb-1 font-semibold">{name || 'Anonymous'}</p>
+      <p className="text-base">{caption}</p>
       {image_url && (
         <img
           src={image_url}
           alt="Post"
-          className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700"
+          className="mt-2 rounded-md max-h-80 object-cover w-full"
         />
       )}
+      <div className="flex justify-between mt-4 text-sm text-gray-400">
+        <button className="hover:text-red-400">❤️ 0</button>
+        <button className="hover:text-blue-400">💬 Comment</button>
+      </div>
     </div>
-  )
+  );
 }
