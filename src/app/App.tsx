@@ -1,22 +1,19 @@
-"use client"
+'use client';
 
-import { ThemeProvider } from "./components/ThemeProvider"
-import Sidebar from "./components/Sidebar"
-import CreatePost from "./components/CreatePost"
-import PostFeed from "./components/PostFeed"
+import Sidebar from './components/Sidebar';
+import PostFeed from './components/PostFeed';
+import CreatePost from './components/CreatePost';
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <div className="flex min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors duration-300">
-        <div className="w-64 border-r border-zinc-200 dark:border-zinc-800 p-4">
-          <Sidebar />
-        </div>
-        <main className="flex-1 p-4 space-y-6">
-          <CreatePost />
-          <PostFeed />
-        </main>
+    <div className="min-h-screen bg-black text-white flex">
+      <div className="w-1/4 p-4">
+        <Sidebar />
       </div>
-    </ThemeProvider>
-  )
+      <div className="w-3/4 p-4 space-y-4">
+        <CreatePost />
+        <PostFeed />
+      </div>
+    </div>
+  );
 }
