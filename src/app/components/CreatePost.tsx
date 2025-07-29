@@ -22,7 +22,6 @@ export default function CreatePost() {
     if (error) {
       console.error('Error creating post:', error.message);
     } else {
-      console.log('Post created:', data);
       setCaption('');
       setImage(null);
       setName('');
@@ -30,31 +29,34 @@ export default function CreatePost() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 bg-white rounded-lg shadow-md">
+    <form
+      onSubmit={handleSubmit}
+      className="p-4 bg-[#111] text-white rounded-lg shadow-md"
+    >
       <input
         type="text"
         placeholder="Name"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="w-full mb-2 p-2 border rounded"
+        className="w-full mb-2 p-2 bg-[#1a1a1a] text-white border border-gray-700 rounded"
         required
       />
       <textarea
         placeholder="What's on your mind?"
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
-        className="w-full mb-2 p-2 border rounded"
+        className="w-full mb-2 p-2 bg-[#1a1a1a] text-white border border-gray-700 rounded"
         required
       />
       <input
         type="file"
         accept="image/*"
         onChange={(e) => setImage(e.target.files?.[0] || null)}
-        className="mb-2"
+        className="mb-2 text-sm"
       />
       <button
         type="submit"
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
       >
         Post
       </button>
