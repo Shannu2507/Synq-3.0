@@ -1,85 +1,63 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useState } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function CreatePost() {
-  const [caption, setCaption] = useState("")
-  const [name, setName] = useState("")
-  const [image, setImage] = useState<File | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [caption, setCaption] = useState('');
+  const [image, setImage] = useState<File | null>(null);
+  const [name, setName] = useState('');
 
-  const handlePost = async () => {
-    if (!caption && !image) return
-    setLoading(true)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    let imageUrl = null
-    if (image) {
-      const fileExt = image.name.split(".").pop()
-      const fileName = `${Date.now()}.${fileExt}`
-      const { data, error } = await supabase.storage
-        .from("images")
-        .upload(fileName, image)
-
-      if (data) {
-        const { data: urlData } = supabase.storage
-          .from("images")
-          .getPublicUrl(fileName)
-        imageUrl = urlData?.publicUrl
-      }
-    }
-
-    await supabase.from("posts").insert([
+    const { data, error } = await supabase.from('posts').insert([
       {
+        name,
         caption,
-        image_url: imageUrl,
-        name: name || "Anonymous",
-      },
-    ])
+        image_url: image ? URL.createObjectURL(image) : null,
+      }
+    ]);
 
-    setCaption("")
-    setName("")
-    setImage(null)
-    setLoading(false)
-  }
+    if (error) {
+      console.error('Error creating post:', error.message);
+    } else {
+      console.log('Post created:', data);
+      setCaption('');
+      setImage(null);
+      setName('');
+    }
+  };
 
   return (
-    <div className="p-4 border rounded-2xl shadow-xl bg-gradient-to-br from-white via-zinc-100 to-white dark:from-[#1a1a1a] dark:to-[#2c2c2c] w-full max-w-xl mx-auto my-6 backdrop-blur-md">
-      <h2 className="text-2xl font-bold mb-4 text-zinc-800 dark:text-zinc-100">Drop your vibe</h2>
-
-      <Input
+    <form onSubmit={handleSubmit} className="p-4 bg-white rounded-lg shadow-md">
+      <input
         type="text"
-        placeholder="Your name (optional)"
+        placeholder="Name"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="mb-3"
+        className="w-full mb-2 p-2 border rounded"
+        required
       />
-
       <textarea
-        placeholder="What's happening?"
+        placeholder="What's on your mind?"
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
-        rows={3}
-        className="w-full p-3 mb-3 rounded-xl border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="w-full mb-2 p-2 border rounded"
+        required
       />
-
-      <Input
+      <input
         type="file"
+        accept="image/*"
         onChange={(e) => setImage(e.target.files?.[0] || null)}
-        className="mb-4 file:bg-blue-600 file:text-white file:rounded-full file:px-4 file:py-1 file:border-none dark:file:bg-blue-500"
+        className="mb-2"
       />
-
-      <Button
-        onClick={handlePost}
-        disabled={loading || (!caption && !image)}
-        className="w-full py-2 rounded-xl bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-pink-600 hover:to-purple-600 transition-colors text-white font-semibold shadow-md disabled:opacity-60"
+      <button
+        type="submit"
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
       >
-        {loading ? "Posting..." : "Post it 🔥"}
-      </Button>
-    </div>
-  )
-}
-
+        Post
+      </button>
+    </form>
+  );
 }
