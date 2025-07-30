@@ -2,64 +2,59 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { User } from '@supabase/supabase-js';
 
-export default function CreatePost() {
-  const [name, setName] = useState('');
+interface CreatePostProps {
+  user: User | null;
+}
+
+export default function CreatePost({ user }: CreatePostProps) {
   const [caption, setCaption] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    console.log('Submit started');
+  const handlePost = async () => {
+    if (!user || !caption.trim()) return;
 
-    try {
-      const { error } = await supabase.from('posts').insert([
-        {
-          name: name.trim() || 'Anonymous',
-          caption: caption.trim(),
-          image_url: null,
-          likes: 0
-        }
-      ]);
+    const { error } = await supabase.from('posts').insert([
+      {
+        name: user.user_metadata.name,
+        caption: caption,
+        image_url: imageUrl || null,
+        likes: 0,
+      },
+    ]);
 
-      if (error) {
-        console.error('Supabase insert error:', error.message);
-      } else {
-        console.log('Post successful ✅');
-        setName('');
-        setCaption('');
-      }
-    } catch (err) {
-      console.error('Unhandled error:', err);
-    } finally {
-      setLoading(false);
+    if (error) {
+      console.error('Error posting:', error.message);
+    } else {
+      setCaption('');
+      setImageUrl('');
     }
   };
 
+  if (!user) return <p className="text-gray-500">Sign in to post something</p>;
+
   return (
-    <form onSubmit={handleSubmit} className="p-4 bg-[#111] text-white rounded-lg shadow-md">
-      <input
-        type="text"
-        placeholder="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="w-full mb-2 p-2 bg-[#1a1a1a] text-white border border-gray-700 rounded"
-      />
+    <div className="bg-gray-900 p-4 rounded-xl space-y-2">
       <textarea
+        className="w-full p-2 rounded bg-gray-800 text-white"
         placeholder="What's on your mind?"
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
-        className="w-full mb-2 p-2 bg-[#1a1a1a] text-white border border-gray-700 rounded"
-        required
+      />
+      <input
+        type="text"
+        className="w-full p-2 rounded bg-gray-800 text-white"
+        placeholder="Image URL (optional)"
+        value={imageUrl}
+        onChange={(e) => setImageUrl(e.target.value)}
       />
       <button
-        type="submit"
-        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-50"
-        disabled={loading}
+        onClick={handlePost}
+        className="bg-blue-600 px-4 py-2 rounded text-white"
       >
-        {loading ? 'Posting...' : 'Post'}
+        Post
       </button>
-    </form>
+    </div>
   );
 }
