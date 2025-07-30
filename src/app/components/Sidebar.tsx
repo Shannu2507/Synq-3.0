@@ -1,7 +1,6 @@
 "use client";
 
 import { User } from "@supabase/supabase-js";
-import { Button } from "@/components/ui/button";
 
 interface SidebarProps {
   user: User | null;
@@ -23,9 +22,12 @@ export default function Sidebar({ user, onLogout }: SidebarProps) {
             />
             <span>{user.user_metadata?.name || user.email}</span>
           </div>
-          <Button variant="destructive" onClick={onLogout}>
+          <button
+            onClick={onLogout}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+          >
             Logout
-          </Button>
+          </button>
         </div>
       ) : (
         <span className="text-sm text-gray-400">Not signed in</span>
