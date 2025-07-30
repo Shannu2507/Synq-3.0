@@ -3,19 +3,15 @@
 import { supabase } from '../../lib/supabaseClient'
 
 export default function LoginPage() {
-  const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
+  async function handleLogin() {
+    await supabase.auth.signInWithOAuth({
       provider: 'google',
     })
-    if (error) console.error('Login error:', error.message)
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center">
-      <button
-        className="bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
-        onClick={handleLogin}
-      >
+    <div className="h-screen flex items-center justify-center">
+      <button onClick={handleLogin} className="bg-blue-600 text-white px-4 py-2 rounded">
         Sign in with Google
       </button>
     </div>
