@@ -1,20 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
-import Image from 'next/image'
-import { supabase } from '../../lib/supabaseClient'
+import React from 'react'
+import { supabase } from '@/lib/supabaseClient'
 
 export default function Sidebar() {
-  const [user, setUser] = useState(null)
-
-  async function getUser() {
-    const { data, error } = await supabase.auth.getUser()
-    if (!error) setUser(data?.user)
-  }
-
   return (
-    <div className="w-64 h-full bg-gray-900 text-white p-4">
-      <h1 className="text-xl font-bold">Sidebar</h1>
-    </div>
+    <aside className="w-64 h-screen bg-gray-900 text-white p-4">
+      <h2 className="text-xl font-bold mb-4">Synq Sidebar</h2>
+      {/* Profile info and nav can go here */}
+    </aside>
   )
 }
