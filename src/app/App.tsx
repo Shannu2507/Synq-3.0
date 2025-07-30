@@ -1,33 +1,29 @@
-'use client';
+"use client"
 
-import { useEffect, useState } from 'react';
-import Sidebar from './components/Sidebar';
-import PostFeed from './components/PostFeed';
-import CreatePost from './components/CreatePost';
-import { supabase } from '@/lib/supabaseClient';
-import { User } from '@supabase/supabase-js';
+import CreatePost from "./components/CreatePost"
+import PostFeed from "./components/PostFeed"
+import Sidebar from "./components/Sidebar"
+import { useEffect, useState } from "react"
+import { supabase } from "../lib/supabaseClient"
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-    });
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      setUser(user)
+    }
 
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, []);
+    getUser()
+  }, [])
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
+    await supabase.auth.signOut()
+    setUser(null)
+  }
 
   return (
     <div className="min-h-screen bg-black text-white flex">
@@ -36,8 +32,8 @@ export default function App() {
       </div>
       <div className="w-3/4 p-4 space-y-4">
         <CreatePost user={user} />
-        <PostFeed user={user} />
+        <PostFeed />
       </div>
     </div>
-  );
+  )
 }
