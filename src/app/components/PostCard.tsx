@@ -1,122 +1,62 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
-import { Heart, MessageCircle } from 'lucide-react';
+import { useState } from 'react'
+import { MessageCircle, ThumbsUp } from 'lucide-react'
+import { Post } from '../types'
+import { supabase } from '../lib/supabaseClient'
+import { User } from '@supabase/supabase-js'
 
 interface PostCardProps {
-  id: number;
-  name: string;
-  caption: string;
-  image_url?: string;
-  likes?: number;
+  post: Post
+  user: User | null
 }
 
-export default function PostCard({
-  id,
-  name,
-  caption,
-  image_url,
-  likes = 0
-}: PostCardProps) {
-  const [likeCount, setLikeCount] = useState(likes);
-  const [showCommentBox, setShowCommentBox] = useState(false);
-  const [comment, setComment] = useState('');
-  const [comments, setComments] = useState<string[]>([]);
+export default function PostCard({ post, user }: PostCardProps) {
+  const [likes, setLikes] = useState(post.likes)
+  const [showComments, setShowComments] = useState(false)
 
   const handleLike = async () => {
-    const newLikes = likeCount + 1;
-    setLikeCount(newLikes);
-    await supabase.from('posts').update({ likes: newLikes }).eq('id', id);
-  };
-
-  const handleCommentSubmit = async () => {
-    if (comment.trim() === '') return;
-
-    const { error } = await supabase.from('comments').insert([
-      {
-        post_id: id,
-        text: comment.trim()
-      }
-    ]);
+    const { data, error } = await supabase
+      .from('posts')
+      .update({ likes: likes + 1 })
+      .eq('id', post.id)
 
     if (!error) {
-      setComment('');
-      fetchComments(); // Refresh comment list
-    } else {
-      console.error('Comment error:', error.message);
+      setLikes(likes + 1)
     }
-  };
+  }
 
-  const fetchComments = async () => {
-    const { data, error } = await supabase
-      .from('comments')
-      .select('text')
-      .eq('post_id', id)
-      .order('created_at', { ascending: true });
-
-    if (!error && data) {
-      setComments(data.map((c) => c.text));
-    }
-  };
-
-  useEffect(() => {
-    if (showCommentBox) {
-      fetchComments();
-    }
-  }, [showCommentBox]);
+  const toggleComments = () => {
+    setShowComments((prev) => !prev)
+  }
 
   return (
-    <div className="bg-[#111] text-white rounded-lg shadow-md p-4 mb-4">
-      <p className="text-sm text-gray-400 mb-1 font-semibold">{name || 'Anonymous'}</p>
-      <p className="text-base">{caption}</p>
-
-      {image_url && (
+    <div className="border border-gray-700 p-4 rounded-lg shadow-md bg-gray-900">
+      <div className="text-sm text-gray-400">{post.name || 'Anonymous'}</div>
+      <div className="text-lg font-medium mb-2">{post.caption}</div>
+      {post.image_url && (
         <img
-          src={image_url}
+          src={post.image_url}
           alt="Post"
-          className="mt-2 rounded-md max-h-80 object-cover w-full"
+          className="w-full h-auto rounded-md mb-2"
         />
       )}
-
-      <div className="flex justify-between mt-4 text-gray-400">
-        <button onClick={handleLike} className="flex items-center gap-1 hover:text-red-400">
-          <Heart size={18} strokeWidth={1.5} /> {likeCount}
+      <div className="flex items-center space-x-4">
+        <button onClick={handleLike} className="flex items-center space-x-1">
+          <ThumbsUp size={18} />
+          <span>{likes}</span>
         </button>
-        <button
-          onClick={() => setShowCommentBox(!showCommentBox)}
-          className="hover:text-blue-400"
-        >
-          <MessageCircle size={18} strokeWidth={1.5} />
+        <button onClick={toggleComments} className="flex items-center space-x-1">
+          <MessageCircle size={18} />
+          <span>Comments</span>
         </button>
       </div>
-
-      {showCommentBox && (
-        <div className="mt-3">
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Write a comment..."
-            className="w-full p-2 mt-2 text-sm bg-[#1a1a1a] text-white border border-gray-700 rounded"
-          />
-          <button
-            onClick={handleCommentSubmit}
-            className="mt-1 px-3 py-1 text-sm text-white bg-blue-600 rounded hover:bg-blue-700"
-          >
-            Comment
-          </button>
-
-          {comments.length > 0 && (
-            <div className="mt-4 space-y-2 text-sm text-gray-300">
-              {comments.map((c, idx) => (
-                <div key={idx} className="bg-[#1a1a1a] p-2 rounded">
-                  {c}
-                </div>
-              ))}
-            </div>
-          )}
+      {showComments && (
+        <div className="mt-2 text-sm text-gray-300">
+          {/* Add comment rendering logic here */}
+          No comments yet.
         </div>
       )}
     </div>
-  );
+  )
 }
