@@ -1,40 +1,43 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '../lib/supabaseClient'
-import Sidebar from './components/Sidebar'
-import PostFeed from './components/PostFeed'
-import CreatePost from './components/CreatePost'
+import { useEffect, useState } from 'react';
+import Sidebar from './components/Sidebar';
+import PostFeed from './components/PostFeed';
+import CreatePost from './components/CreatePost';
+import { supabase } from '@/lib/supabaseClient';
+import { User } from '@supabase/supabase-js';
 
 export default function App() {
-  const [user, setUser] = useState(null)
-  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data, error } = await supabase.auth.getUser()
-      if (!data?.user) {
-        router.push('/login')
-      } else {
-        setUser(data.user)
-      }
-    }
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
 
-    checkUser()
-  }, [])
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
 
-  if (!user) return null
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
 
   return (
     <div className="min-h-screen bg-black text-white flex">
       <div className="w-1/4 p-4">
-        <Sidebar />
+        <Sidebar user={user} onLogout={handleLogout} />
       </div>
       <div className="w-3/4 p-4 space-y-4">
-        <CreatePost />
-        <PostFeed />
+        <CreatePost user={user} />
+        <PostFeed user={user} />
       </div>
     </div>
-  )
+  );
 }
