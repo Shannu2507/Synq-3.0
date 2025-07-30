@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { User } from '@supabase/supabase-js';
+import { User } from "@supabase/supabase-js";
+import { Button } from "@/components/ui/button";
 
 interface SidebarProps {
   user: User | null;
@@ -9,35 +9,26 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ user, onLogout }: SidebarProps) {
-  const router = useRouter();
-
   return (
-    <div className="flex flex-col space-y-4 text-white">
-      <h1 className="text-2xl font-bold">Synq</h1>
+    <div className="flex flex-col items-start space-y-4">
+      <h2 className="text-xl font-bold mb-4">Synq</h2>
 
       {user ? (
         <div className="space-y-2">
-          <img
-            src={user.user_metadata.avatar_url}
-            alt="Profile"
-            className="w-12 h-12 rounded-full"
-          />
-          <p className="text-sm">{user.user_metadata.name}</p>
-          <button
-            className="bg-gray-800 px-3 py-1 rounded"
-            onClick={() => router.push('/profile')}
-          >
-            Edit Profile
-          </button>
-          <button
-            className="bg-red-600 px-3 py-1 rounded"
-            onClick={onLogout}
-          >
+          <div className="flex items-center space-x-2">
+            <img
+              src={user.user_metadata?.avatar_url}
+              alt="Profile"
+              className="w-10 h-10 rounded-full"
+            />
+            <span>{user.user_metadata?.name || user.email}</span>
+          </div>
+          <Button variant="destructive" onClick={onLogout}>
             Logout
-          </button>
+          </Button>
         </div>
       ) : (
-        <p className="text-sm text-gray-400">Not signed in</p>
+        <span className="text-sm text-gray-400">Not signed in</span>
       )}
     </div>
   );
