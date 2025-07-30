@@ -1,60 +1,26 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
-import { User } from '@supabase/supabase-js';
+import React, { useState } from 'react'
+import { supabase } from '../../lib/supabaseClient'
 
-interface CreatePostProps {
-  user: User | null;
-}
+export default function CreatePost() {
+  const [caption, setCaption] = useState('')
 
-export default function CreatePost({ user }: CreatePostProps) {
-  const [caption, setCaption] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-
-  const handlePost = async () => {
-    if (!user || !caption.trim()) return;
-
-    const { error } = await supabase.from('posts').insert([
-      {
-        name: user.user_metadata.name,
-        caption: caption,
-        image_url: imageUrl || null,
-        likes: 0,
-      },
-    ]);
-
-    if (error) {
-      console.error('Error posting:', error.message);
-    } else {
-      setCaption('');
-      setImageUrl('');
-    }
-  };
-
-  if (!user) return <p className="text-gray-500">Sign in to post something</p>;
+  async function handlePost() {
+    await supabase.from('posts').insert({ caption })
+    setCaption('')
+  }
 
   return (
-    <div className="bg-gray-900 p-4 rounded-xl space-y-2">
-      <textarea
-        className="w-full p-2 rounded bg-gray-800 text-white"
-        placeholder="What's on your mind?"
-        value={caption}
-        onChange={(e) => setCaption(e.target.value)}
-      />
+    <div>
       <input
         type="text"
-        className="w-full p-2 rounded bg-gray-800 text-white"
-        placeholder="Image URL (optional)"
-        value={imageUrl}
-        onChange={(e) => setImageUrl(e.target.value)}
+        placeholder="Write something..."
+        value={caption}
+        onChange={(e) => setCaption(e.target.value)}
+        className="border px-2 py-1"
       />
-      <button
-        onClick={handlePost}
-        className="bg-blue-600 px-4 py-2 rounded text-white"
-      >
-        Post
-      </button>
+      <button onClick={handlePost}>Post</button>
     </div>
-  );
+  )
 }
