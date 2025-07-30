@@ -1,24 +1,24 @@
 {
-  "name": "synq",
+  "name": "synq-app",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.42.3",
-    "@supabase/ssr": "^0.4.7",
-    "next": "14.2.3",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "@supabase/supabase-js": "^2.39.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "eslint": "8.56.0",
-    "eslint-config-next": "14.2.3",
-    "typescript": "5.4.5"
+    "@types/react": "^18.2.14",
+    "@types/react-dom": "^18.2.7",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.27",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.11"
   }
 }
-
