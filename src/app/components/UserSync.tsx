@@ -1,22 +1,25 @@
-"use client";
+'use client'
 
-import { useEffect } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { useUser } from "@supabase/auth-helpers-react";
+import { useEffect } from 'react'
+import { supabase } from '@/lib/supabaseClient'
+import { useSessionContext } from '@/lib/useSessionContext' // or replace with your actual session method
 
 export default function UserSync() {
-  const user = useUser();
+  const { session } = useSessionContext()
 
   useEffect(() => {
     const syncUser = async () => {
-      if (user) {
-        await supabase
-          .from("users")
-          .upsert({ id: user.id, email: user.email }, { onConflict: "id" });
-      }
-    };
-    syncUser();
-  }, [user]);
+      const user = session?.user
+      if (!user) return
 
-  return null;
+      await supabase.from('users').upsert(
+        [{ id: user.id, email: user.email }],
+        { onConflict: 'id' }
+      )
+    }
+
+    syncUser()
+  }, [session])
+
+  return null
 }
