@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import Sidebar from "./components/Sidebar";
-import PostFeed from "./components/PostFeed";
-import CreatePost from "./components/CreatePost";
-import UserSync from "./components/UserSync";
+import Sidebar from "@/app/components/Sidebar";
+import PostFeed from "@/app/components/PostFeed";
+import CreatePost from "@/app/components/CreatePost";
+import UserSync from "@/app/components/UserSync";
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
