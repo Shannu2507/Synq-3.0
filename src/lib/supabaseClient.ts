@@ -1,6 +1,8 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
-export const supabase = createClient(
-  'https://cdlbntbjvntvmidouydu.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkbGJudGJqdm50dm1pZG91eWR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTIwMDU1NDUsImV4cCI6MjAzNzU4MTU0NX0.Rp3BGUe1TEfYHqucUpxqYosjkHyP8VcbgcYjB8NjVbQ'
-)
+// Your actual Supabase credentials
+const supabaseUrl = "https://pyvqjtatbyqxnsmhgixw.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5dnFqdGF0YnlxeG5zbWhnaXh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM1MjM5NDEsImV4cCI6MjA2OTA5OTk0MX0.zjdNfe3kF_ZtdlJHfcE1guYbQd5EXeOfqlo6YC0cg8M";
+
+export const createClient = () =>
+  createSupabaseClient(supabaseUrl, supabaseAnonKey);
