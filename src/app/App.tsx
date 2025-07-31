@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-// ✅ Corrected relative import paths
+// ✅ FIXED relative paths from /styles to /app/components
 import Sidebar from "../app/components/Sidebar";
 import CreatePost from "../app/components/CreatePost";
 import PostFeed from "../app/components/PostFeed";
