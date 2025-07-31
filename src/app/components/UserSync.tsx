@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 interface UserSyncProps {
-  user?: any // user is now optional
+  user?: any;
 }
 
 export default function UserSync({ user }: UserSyncProps) {
@@ -15,13 +15,13 @@ export default function UserSync({ user }: UserSyncProps) {
           .from("users")
           .upsert(
             { id: user.id, email: user.email },
-            { onConflict: "id" } // ✅ fix: string, not string[]
-          )
+            { onConflict: "id" }
+          );
       }
-    }
+    };
 
-    syncUser()
-  }, [user])
+    syncUser();
+  }, [user]);
 
-  return null
+  return null;
 }
