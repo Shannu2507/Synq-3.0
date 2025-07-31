@@ -1,25 +1,27 @@
-'use client'
+"use client"
 
-import { useEffect } from 'react'
-import { supabase } from '@/lib/supabaseClient'
-import { useSessionContext } from '@/lib/useSessionContext' // or replace with your actual session method
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabaseClient"
 
-export default function UserSync() {
-  const { session } = useSessionContext()
+export default function UserSync({ user }: { user: any }) {
+  const router = useRouter()
 
   useEffect(() => {
     const syncUser = async () => {
-      const user = session?.user
-      if (!user) return
-
-      await supabase.from('users').upsert(
-        [{ id: user.id, email: user.email }],
-        { onConflict: 'id' }
-      )
+      if (user?.id && user?.email) {
+        await supabase
+          .from("users")
+          .upsert(
+            [{ id: user.id, email: user.email }],
+            { onConflict: "id" }
+          )
+      }
     }
 
     syncUser()
-  }, [session])
+    router.refresh()
+  }, [user, router])
 
   return null
 }
