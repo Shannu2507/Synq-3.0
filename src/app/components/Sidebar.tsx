@@ -1,59 +1,51 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import Sidebar from "./components/Sidebar";
-import PostFeed from "./components/PostFeed";
-import CreatePost from "./components/CreatePost";
-import UserSync from "./components/UserSync";
+import { useState } from "react";
+import { User } from "@supabase/supabase-js";
+import Image from "next/image";
+import defaultAvatar from "@/public/default-avatar.png"; // optional, or remove
 
-export default function App() {
-  const [user, setUser] = useState<any>(null);
+interface SidebarProps {
+  user: User;
+  onLogout: () => void;
+}
 
-  useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-    };
-
-    getUser();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-black text-white">
-        <p>Loading or not signed in...</p>
-      </div>
-    );
-  }
+export default function Sidebar({ user, onLogout }: SidebarProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-black text-white flex">
-      <div className="w-1/4 p-4">
-        <Sidebar user={user} onLogout={handleLogout} />
+    <div className="bg-zinc-900 p-4 rounded-lg h-full flex flex-col justify-between">
+      <div>
+        <div className="flex items-center space-x-4 mb-6">
+          <Image
+            src={user?.user_metadata?.avatar_url || defaultAvatar}
+            alt="Avatar"
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
+          <span>{user?.user_metadata?.name || "User"}</span>
+        </div>
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="text-white mb-4"
+        >
+          {menuOpen ? "Close Menu" : "Open Menu"}
+        </button>
+        {menuOpen && (
+          <ul className="text-white space-y-2">
+            <li>Feed</li>
+            <li>My Profile</li>
+            <li>Settings</li>
+          </ul>
+        )}
       </div>
-      <div className="w-3/4 p-4 space-y-4">
-        <CreatePost user={user} />
-        <PostFeed />
-        <UserSync user={user} />
-      </div>
+      <button
+        onClick={onLogout}
+        className="bg-red-600 text-white px-4 py-2 rounded mt-4"
+      >
+        Logout
+      </button>
     </div>
   );
 }
