@@ -1,13 +1,33 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import React from "react";
+import Image from "next/image";
 
-export default function Sidebar() {
+interface SidebarProps {
+  user: any;
+  onLogout: () => Promise<void>;
+}
+
+export default function Sidebar({ user, onLogout }: SidebarProps) {
   return (
-    <aside className="w-64 h-screen bg-gray-900 text-white p-4">
-      <h2 className="text-xl font-bold mb-4">Synq Sidebar</h2>
-      {/* Profile info and nav can go here */}
-    </aside>
-  )
+    <div className="space-y-4">
+      <div className="flex items-center space-x-4">
+        {user?.user_metadata?.avatar_url && (
+          <Image
+            src={user.user_metadata.avatar_url}
+            alt="Profile"
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
+        )}
+        <div>
+          <div className="text-sm">{user?.user_metadata?.full_name || "User"}</div>
+          <button onClick={onLogout} className="text-xs text-red-400 hover:underline">
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
