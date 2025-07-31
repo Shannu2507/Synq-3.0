@@ -1,60 +1,62 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { createClient } from "@/lib/supabaseClient";
-import Image from "next/image";
+import { useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
-interface CreatePostProps {
-  user: any;
-}
-
-export default function CreatePost({ user }: CreatePostProps) {
-  const supabase = createClient();
+export default function CreatePost() {
   const [caption, setCaption] = useState("");
   const [image, setImage] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handlePost = async () => {
-    if (!user) return;
-    const { data, error } = await supabase.from("posts").insert([
+  const handleSubmit = async () => {
+    if (!caption && !image) return alert("Add a caption or image");
+
+    let imageUrl = "";
+
+    if (image) {
+      const { data, error } = await supabase.storage
+        .from("posts")
+        .upload(`public/${Date.now()}-${image.name}`, image);
+
+      if (error) return alert("Image upload failed");
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("posts").getPublicUrl(data.path);
+
+      imageUrl = publicUrl;
+    }
+
+    await supabase.from("posts").insert([
       {
         caption,
-        user_id: user.id,
-        image_url: image ? image.name : null,
+        image_url: imageUrl,
       },
     ]);
 
     setCaption("");
     setImage(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    window.location.reload();
   };
 
   return (
-    <div className="bg-gray-900 p-4 rounded-xl">
+    <div className="p-4 bg-zinc-900 rounded-lg mb-6">
       <textarea
+        className="w-full p-2 rounded bg-zinc-800 text-white mb-2"
         placeholder="What's on your mind?"
-        className="w-full p-2 rounded bg-gray-800 text-white resize-none"
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
       />
-      <div className="flex justify-between items-center mt-2">
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) setImage(file);
-          }}
-          className="text-sm text-gray-300"
-        />
-        <button
-          onClick={handlePost}
-          className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded text-white"
-        >
-          Post
-        </button>
-      </div>
+      <input
+        type="file"
+        onChange={(e) => setImage(e.target.files?.[0] || null)}
+        className="text-white mb-2"
+      />
+      <button
+        onClick={handleSubmit}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        Post
+      </button>
     </div>
   );
 }
