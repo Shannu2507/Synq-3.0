@@ -1,48 +1,24 @@
-"use client"
+import React from "react";
 
-import React from "react"
-
-interface PostCardProps {
-  name: string
-  caption: string
-  imageUrl?: string
-  likes: number
-  onLike: () => void
-  onCommentToggle: () => void
-  showComments: boolean
-}
-
-export default function PostCard({
-  name,
-  caption,
-  imageUrl,
-  likes,
-  onLike,
-  onCommentToggle,
-  showComments
-}: PostCardProps) {
+export default function PostCard({ post }: { post: any }) {
   return (
-    <div className="bg-white rounded-lg shadow p-4 mb-4 w-full max-w-xl mx-auto">
-      <div className="flex items-center mb-2">
-        <div className="w-10 h-10 bg-gray-300 rounded-full mr-3" />
-        <span className="font-medium">{name}</span>
+    <div className="bg-zinc-800 text-white rounded-lg p-4 mb-4 shadow">
+      <div className="flex items-center space-x-2 mb-2">
+        <div className="w-10 h-10 bg-zinc-600 rounded-full" />
+        <div className="text-sm font-semibold">{post.username || "User"}</div>
       </div>
-      <p className="mb-2">{caption}</p>
-      {imageUrl && (
+      <div className="text-white mb-2">{post.caption}</div>
+      {post.image_url && (
         <img
-          src={imageUrl}
+          src={post.image_url}
           alt="Post"
-          className="w-full h-auto rounded mb-2"
+          className="w-full rounded-md max-h-96 object-cover"
         />
       )}
-      <div className="flex items-center gap-4">
-        <button onClick={onLike} className="flex items-center gap-1 text-red-500">
-          ❤️ <span>{likes}</span>
-        </button>
-        <button onClick={onCommentToggle} className="text-blue-500">
-          💬 {showComments ? "Hide Comments" : "Show Comments"}
-        </button>
+      <div className="flex items-center space-x-4 mt-3 text-sm">
+        <span>❤️ {post.likes || 0}</span>
+        <span>💬 {post.comments?.length || 0} Comments</span>
       </div>
     </div>
-  )
+  );
 }
