@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function CreatePost() {
+interface CreatePostProps {
+  user: any;
+}
+
+export default function CreatePost({ user }: CreatePostProps) {
   const [caption, setCaption] = useState("");
   const [image, setImage] = useState<File | null>(null);
 
@@ -30,6 +34,7 @@ export default function CreatePost() {
       {
         caption,
         image_url: imageUrl,
+        user_id: user.id,
       },
     ]);
 
