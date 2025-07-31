@@ -1,21 +1,22 @@
-'use client'
+"use client";
 
-import { useEffect } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { useUser } from "@supabase/auth-helpers-react";
 
 export default function UserSync() {
+  const user = useUser();
+
   useEffect(() => {
     const syncUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         await supabase
-          .from('users')
-          .upsert({ id: user.id, email: user.email }, { onConflict: ['id'] })
+          .from("users")
+          .upsert({ id: user.id, email: user.email }, { onConflict: "id" });
       }
-    }
+    };
+    syncUser();
+  }, [user]);
 
-    syncUser()
-  }, [])
-
-  return null
+  return null;
 }
