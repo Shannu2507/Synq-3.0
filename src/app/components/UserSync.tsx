@@ -1,27 +1,27 @@
 "use client"
 
 import { useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabaseClient"
 
-export default function UserSync({ user }: { user: any }) {
-  const router = useRouter()
+interface UserSyncProps {
+  user?: any // user is now optional
+}
 
+export default function UserSync({ user }: UserSyncProps) {
   useEffect(() => {
     const syncUser = async () => {
-      if (user?.id && user?.email) {
+      if (user) {
         await supabase
           .from("users")
           .upsert(
-            [{ id: user.id, email: user.email }],
-            { onConflict: "id" }
+            { id: user.id, email: user.email },
+            { onConflict: "id" } // ✅ fix: string, not string[]
           )
       }
     }
 
     syncUser()
-    router.refresh()
-  }, [user, router])
+  }, [user])
 
   return null
 }
