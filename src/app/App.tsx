@@ -1,4 +1,6 @@
-"use client";
+
+  
+  "use client";
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
@@ -9,6 +11,7 @@ import UserSync from "@/app/components/UserSync";
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getUser = async () => {
@@ -16,6 +19,7 @@ export default function App() {
         data: { user },
       } = await supabase.auth.getUser();
       setUser(user);
+      setLoading(false);
     };
 
     getUser();
@@ -31,15 +35,34 @@ export default function App() {
     };
   }, []);
 
+  const handleLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+    });
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black text-white">
-        <p>Loading or not signed in...</p>
+        <button
+          onClick={handleLogin}
+          className="bg-blue-600 px-6 py-3 rounded text-white"
+        >
+          Sign in with Google
+        </button>
       </div>
     );
   }
