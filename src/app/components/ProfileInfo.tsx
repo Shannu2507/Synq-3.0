@@ -3,13 +3,21 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function ProfileInfo({ user }: { user: any }) {
+export default function ProfileInfo() {
+  const [user, setUser] = useState<any>(null);
   const [username, setUsername] = useState("");
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUsername = async () => {
+    const fetchUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      setUser(user);
+
       const { data } = await supabase
         .from("users")
         .select("username")
@@ -20,10 +28,12 @@ export default function ProfileInfo({ user }: { user: any }) {
       setLoading(false);
     };
 
-    fetchUsername();
-  }, [user]);
+    fetchUser();
+  }, []);
 
   const updateUsername = async () => {
+    if (!user) return;
+
     await supabase
       .from("users")
       .update({ username })
@@ -32,7 +42,7 @@ export default function ProfileInfo({ user }: { user: any }) {
     setEditing(false);
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading || !user) return <p>Loading...</p>;
 
   return (
     <div className="space-y-4 bg-zinc-900 p-6 rounded-md">
