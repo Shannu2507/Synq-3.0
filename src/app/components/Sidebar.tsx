@@ -1,45 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { User } from "@supabase/supabase-js";
+import Link from "next/link";
 
-interface SidebarProps {
-  user: User;
-  onLogout: () => void;
-}
-
-export default function Sidebar({ user, onLogout }: SidebarProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
-
+export default function Sidebar({ user, onLogout }: { user: any; onLogout: () => void }) {
   return (
-    <div className="bg-zinc-900 p-4 rounded-lg h-full flex flex-col justify-between">
-      <div>
-        <div className="flex items-center space-x-4 mb-6">
-          <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center">
-            {user?.email?.charAt(0)?.toUpperCase() ?? "U"}
-          </div>
-          <span>{user?.user_metadata?.name || "User"}</span>
-        </div>
+    <div className="h-full bg-zinc-950 p-4 space-y-6 text-white">
+      <h1 className="text-2xl font-bold mb-6">Synq</h1>
 
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="text-white mb-4"
-        >
-          {menuOpen ? "Close Menu" : "Open Menu"}
-        </button>
-
-        {menuOpen && (
-          <ul className="text-white space-y-2">
-            <li>Feed</li>
-            <li>My Profile</li>
-            <li>Settings</li>
-          </ul>
-        )}
-      </div>
+      <nav className="flex flex-col space-y-4">
+        <Link href="/" className="hover:text-gray-300">Home</Link>
+        <Link href="/explore" className="hover:text-gray-300">Explore</Link>
+        <Link href="/profile" className="hover:text-gray-300">Profile</Link>
+      </nav>
 
       <button
         onClick={onLogout}
-        className="bg-red-600 text-white px-4 py-2 rounded mt-4"
+        className="mt-6 text-red-400 hover:text-red-500 text-sm"
       >
         Logout
       </button>
