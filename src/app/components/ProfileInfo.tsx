@@ -3,50 +3,109 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function ProfileInfo() {
-  const [user, setUser] = useState<any>(null);
+export default function ProfileInfo({ user }: { user: any }) {
   const [username, setUsername] = useState("");
   const [editing, setEditing] = useState(false);
+  const [profilePictureUrl, setProfilePictureUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      setUser(user);
-
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("users")
-        .select("username")
+        .select("username, profile_picture")
         .eq("id", user.id)
         .single();
 
-      if (data) setUsername(data.username || "");
+      if (!error && data) {
+        setUsername(data.username || "");
+        setProfilePictureUrl(data.profile_picture || "");
+      }
       setLoading(false);
     };
 
     fetchUser();
-  }, []);
+  }, [user.id]);
 
   const updateUsername = async () => {
-    if (!user) return;
-
-    await supabase
+    const { error } = await supabase
       .from("users")
       .update({ username })
       .eq("id", user.id);
 
-    setEditing(false);
+    if (!error) {
+      setEditing(false);
+      alert("Username updated!");
+    }
   };
 
-  if (loading || !user) return <p>Loading...</p>;
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploading(true);
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+
+      const { data: storageData, error: uploadError } = await supabase.storage
+        .from("profile-pictures")
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("profile-pictures")
+        .getPublicUrl(fileName);
+
+      const publicUrl = urlData?.publicUrl;
+
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ profile_picture: publicUrl })
+        .eq("id", user.id);
+
+      if (!updateError) {
+        setProfilePictureUrl(publicUrl);
+        alert("Profile picture updated!");
+      }
+    } catch (error) {
+      console.error("Image upload failed:", error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (loading) return <p>Loading...</p>;
 
   return (
-    <div className="space-y-4 bg-zinc-900 p-6 rounded-md">
-      <p className="text-sm text-gray-400">Email: {user.email}</p>
+    <div className="space-y-6 bg-zinc-900 p-6 rounded-md">
+      <div className="flex flex-col items-start space-y-3">
+        <label className="text-sm text-gray-400">Email: {user.email}</label>
+
+        <div className="w-32 h-32">
+          {profilePictureUrl ? (
+            <img
+              src={profilePictureUrl}
+              alt="Profile"
+              className="w-32 h-32 rounded-full object-cover border"
+            />
+          ) : (
+            <div className="w-32 h-32 rounded-full bg-gray-800 border flex items-center justify-center text-gray-400">
+              No Image
+            </div>
+          )}
+        </div>
+
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          disabled={uploading}
+          className="text-sm text-white"
+        />
+      </div>
 
       {editing ? (
         <div className="space-y-2">
