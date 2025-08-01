@@ -10,7 +10,7 @@ export default function ProfileInfo({ user }: { user: any }) {
 
   useEffect(() => {
     const fetchUsername = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("users")
         .select("username")
         .eq("id", user.id)
