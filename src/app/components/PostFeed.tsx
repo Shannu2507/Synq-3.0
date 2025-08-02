@@ -1,35 +1,50 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import PostCard from "@/app/components/PostCard";
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabaseClient"
+import PostCard from "./PostCard"
+
+type Post = {
+  id: string
+  user_name: string | null
+  caption: string
+  image_url: string | null
+  like_count: number
+  created_at: string
+  user_id: string
+}
 
 export default function PostFeed() {
-  const [posts, setPosts] = useState<any[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [posts, setPosts] = useState<Post[]>([])
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const { data, error } = await supabase.from("posts").select("*").order("created_at", { ascending: false });
-      if (!error) setPosts(data || []);
-    };
+      const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .order("created_at", { ascending: false })
 
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setCurrentUser(user);
-    };
+      if (!error && data) {
+        setPosts(data)
+      }
+    }
 
-    fetchPosts();
-    getUser();
-  }, []);
+    fetchPosts()
+  }, [])
 
   return (
-    <div className="p-4">
+    <div className="space-y-4">
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} currentUser={currentUser} />
+        <PostCard
+          key={post.id}
+          id={post.id}
+          userId={post.user_id}
+          username={post.user_name || "anon"}
+          content={post.caption}
+          imageUrl={post.image_url}
+          likes={post.like_count || 0}
+        />
       ))}
     </div>
-  );
+  )
 }
