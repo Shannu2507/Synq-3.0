@@ -1,69 +1,62 @@
-// src/app/App.tsx
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import Sidebar from "./components/Sidebar";
-import PostFeed from "./components/PostFeed";
-import CreatePost from "./components/CreatePost";
-import ProfilePage from "./components/ProfilePage";
-import ExplorePage from "./components/ExplorePage";
-import UserSync from "./components/UserSync";
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabaseClient'
+import CreatePost from './components/CreatePost'
+import PostFeed from './components/PostFeed'
+import ProfilePage from './components/ProfilePage'
+import UserSync from './components/UserSync'
+import Sidebar from './components/Sidebar'
+import Login from './login/page'
+import ExplorePage from './explore/page' 
 
 export default function App() {
-  const [session, setSession] = useState<any>(null);
-  const [currentPage, setCurrentPage] = useState("home");
+  const [session, setSession] = useState<any>(null)
+  const [currentPage, setCurrentPage] = useState('home')
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-    };
-
-    getSession();
+    const currentSession = supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session)
+    })
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
+      setSession(session)
+    })
 
     return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, []);
+      listener?.subscription.unsubscribe()
+    }
+  }, [])
 
-  const handleGoogleSignIn = async () => {
-    await supabase.auth.signInWithOAuth({ provider: "google" });
-  };
-
-  if (!session) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white">
-        <h1 className="text-4xl font-bold mb-6">Welcome to Synq</h1>
-        <button
-          onClick={handleGoogleSignIn}
-          className="bg-blue-600 px-6 py-3 rounded-md hover:bg-blue-700 transition"
-        >
-          Sign in with Google
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex min-h-screen bg-black text-white">
-      <Sidebar setCurrentPage={setCurrentPage} />
-      <main className="flex-1 p-4">
-        <UserSync />
-        {currentPage === "home" && (
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'home':
+        return (
           <>
-            <h1 className="text-3xl font-bold mb-4">Synq</h1>
             <CreatePost />
             <PostFeed />
           </>
-        )}
-        {currentPage === "profile" && <ProfilePage />}
-        {currentPage === "explore" && <ExplorePage />}
-      </main>
-    </div>
-  );
+        )
+      case 'profile':
+        return <ProfilePage />
+      case 'explore':
+        return <ExplorePage />
+      default:
+        return null
+    }
+  }
+
+  return (
+    <main className="flex h-screen w-full bg-black text-white">
+      {session ? (
+        <>
+          <UserSync session={session} />
+          <Sidebar setCurrentPage={setCurrentPage} />
+          <section className="flex-1 overflow-y-auto p-4">{renderPage()}</section>
+        </>
+      ) : (
+        <Login />
+      )}
+    </main>
+  )
 }
