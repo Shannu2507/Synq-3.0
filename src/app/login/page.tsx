@@ -1,17 +1,19 @@
-'use client'
+// src/app/login/page.tsx
+"use client"
 
-import { supabase } from '@/lib/supabaseClient'
+import { supabase } from "@/lib/supabaseClient"
 
 export default function LoginPage() {
-  const handleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-    })
+  const handleSignIn = async () => {
+    await supabase.auth.signInWithOAuth({ provider: "google" })
   }
 
   return (
-    <div className="h-screen flex items-center justify-center">
-      <button onClick={handleLogin} className="bg-blue-600 text-white px-4 py-2 rounded">
+    <div className="flex items-center justify-center h-screen bg-black text-white">
+      <button
+        onClick={handleSignIn}
+        className="bg-white text-black px-6 py-3 rounded-xl font-semibold shadow-md hover:bg-gray-200 transition"
+      >
         Sign in with Google
       </button>
     </div>
