@@ -1,95 +1,79 @@
-'use client'
+// src/app/components/ProfilePage.tsx
+"use client"
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabaseClient"
 
-export default function ProfilePage({ session }: { session: any }) {
-  const [username, setUsername] = useState('')
-  const [editing, setEditing] = useState(false)
+type Props = {
+  session: any
+}
+
+export default function ProfilePage({ session }: Props) {
+  const [username, setUsername] = useState("")
+  const [profilePicture, setProfilePicture] = useState<string | null>(null)
+  const [editingUsername, setEditingUsername] = useState(false)
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!session?.user?.id) return
-
-      const { data, error } = await supabase
-        .from('users')
-        .select('username')
-        .eq('id', session.user.id)
-        .single()
-
-      if (error) {
-        console.error('Error fetching profile:', error.message)
-      } else {
-        setUsername(data.username)
-      }
-    }
-
     fetchProfile()
-  }, [session])
+  }, [])
 
-  const updateUsername = async () => {
-    const { error } = await supabase
-      .from('users')
-      .update({ username })
-      .eq('id', session.user.id)
-
-    if (error) {
-      console.error('Error updating username:', error.message)
-    } else {
-      setEditing(false)
+  const fetchProfile = async () => {
+    const { data } = await supabase.from("users").select("*").eq("id", session.user.id).single()
+    if (data) {
+      setUsername(data.username || "")
+      setProfilePicture(data.profile_picture || null)
     }
   }
 
-  if (!session) {
-    return (
-      <div className="text-center mt-10 text-white">
-        <p>Please sign in to view your profile</p>
-        <button
-          onClick={async () => {
-            await supabase.auth.signInWithOAuth({ provider: 'google' })
-          }}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Sign in with Google
-        </button>
-      </div>
-    )
+  const updateUsername = async () => {
+    await supabase.from("users").update({ username }).eq("id", session.user.id)
+    setEditingUsername(false)
+  }
+
+  const handlePictureUpload = async (file: File) => {
+    const fileName = `${session.user.id}-${Date.now()}-${file.name}`
+    const { data, error } = await supabase.storage.from("profile-pictures").upload(fileName, file)
+
+    if (!error) {
+      const url = supabase.storage.from("profile-pictures").getPublicUrl(fileName).data.publicUrl
+      await supabase.from("users").update({ profile_picture: url }).eq("id", session.user.id)
+      setProfilePicture(url)
+    }
   }
 
   return (
-    <div className="max-w-xl mx-auto mt-10 bg-neutral-900 p-6 rounded-xl text-white">
-      <h1 className="text-2xl font-bold mb-4">Your Profile</h1>
-      <p><strong>Email:</strong> {session.user.email}</p>
-
-      <div className="mt-4">
-        <strong>Username:</strong>{' '}
-        {editing ? (
-          <>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="p-2 rounded text-black"
-            />
-            <button
-              onClick={updateUsername}
-              className="ml-2 px-3 py-1 bg-green-600 rounded hover:bg-green-700"
-            >
-              Save
-            </button>
-          </>
-        ) : (
-          <>
-            <span>{username}</span>
-            <button
-              onClick={() => setEditing(true)}
-              className="ml-2 px-3 py-1 bg-blue-600 rounded hover:bg-blue-700"
-            >
-              Edit
-            </button>
-          </>
+    <div className="bg-[#1a1a1a] p-6 rounded-2xl shadow max-w-md">
+      <div className="flex flex-col items-center space-y-4">
+        {profilePicture && (
+          <img
+            src={profilePicture}
+            alt="Profile"
+            className="w-24 h-24 rounded-full object-cover border border-gray-700"
+          />
         )}
+        <input
+          type="file"
+          onChange={(e) => e.target.files && handlePictureUpload(e.target.files[0])}
+          className="text-sm text-gray-400"
+        />
+        <div className="text-xl font-semibold text-white">
+          {editingUsername ? (
+            <div className="flex space-x-2">
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="bg-[#111] text-white px-2 py-1 rounded outline-none"
+              />
+              <button onClick={updateUsername} className="text-green-400">Save</button>
+            </div>
+          ) : (
+            <span onClick={() => setEditingUsername(true)} className="cursor-pointer hover:underline">
+              {username || "Anonymous"}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   )
 }
+
