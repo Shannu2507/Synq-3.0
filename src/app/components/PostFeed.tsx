@@ -22,7 +22,14 @@ export default function PostFeed({ session }: Props) {
   }
 
   const handleLike = async (postId: string) => {
-    await supabase.from("posts").update({ likes: supabase.raw("likes + 1") }).eq("id", postId)
+    const { data: post } = await supabase.from("posts").select("likes").eq("id", postId).single()
+    if (!post) return
+
+    await supabase
+      .from("posts")
+      .update({ likes: (post.likes || 0) + 1 })
+      .eq("id", postId)
+
     fetchPosts()
   }
 
