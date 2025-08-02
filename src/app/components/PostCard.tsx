@@ -1,7 +1,8 @@
 "use client"
 
 import { supabase } from "@/lib/supabaseClient"
-import { useSession } from "@supabase/auth-helpers-react"
+import { useContext } from "react"
+import { SessionContext } from "@/lib/SessionContext" // adjust if your context path is different
 
 type Props = {
   id: string
@@ -13,7 +14,7 @@ type Props = {
 }
 
 export default function PostCard({ id, userId, username, content, imageUrl, likes }: Props) {
-  const session = useSession()
+  const { session } = useContext(SessionContext) // read session from your context
   const isOwner = session?.user?.id === userId
 
   const deletePost = async () => {
