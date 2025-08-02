@@ -1,61 +1,49 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient"
+import { useSession } from "@supabase/auth-helpers-react"
 
-export default function PostCard({ post, currentUser }: { post: any; currentUser: any }) {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+type Props = {
+  id: string
+  userId: string
+  username: string
+  content: string
+  imageUrl: string | null
+  likes: number
+}
 
-  const isOwner = currentUser?.id === post.user_id;
+export default function PostCard({ id, userId, username, content, imageUrl, likes }: Props) {
+  const session = useSession()
+  const isOwner = session?.user?.id === userId
 
-  useEffect(() => {
-    if (post.image_url) {
-      setImageUrl(post.image_url);
-    }
-    setLoading(false);
-  }, [post.image_url]);
-
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this post?")) return;
-
-    const { error } = await supabase
-      .from("posts")
-      .delete()
-      .eq("id", post.id)
-      .eq("user_id", currentUser.id);
-
-    if (error) {
-      console.error("Error deleting post:", error.message);
-    } else {
-      alert("Post deleted!");
-      location.reload(); // reload to reflect changes
-    }
-  };
-
-  if (loading) return <div className="text-white">Loading post...</div>;
+  const deletePost = async () => {
+    await supabase.from("posts").delete().eq("id", id)
+    window.location.reload()
+  }
 
   return (
-    <div className="bg-zinc-900 text-white p-4 rounded-md shadow-md space-y-2">
-      <div className="flex justify-between items-center">
-        <p className="text-sm font-semibold">{post.name || "Anonymous"}</p>
+    <div className="bg-white/5 p-4 rounded-xl shadow-sm space-y-2">
+      <div className="flex justify-between text-sm text-white/80 font-semibold">
+        <span>@{username}</span>
         {isOwner && (
-          <button
-            onClick={handleDelete}
-            className="text-red-400 hover:text-red-600 text-xs"
-          >
+          <button onClick={deletePost} className="text-red-400 hover:underline">
             Delete
           </button>
         )}
       </div>
-      <p>{post.caption}</p>
+      <p className="text-white">{content}</p>
       {imageUrl && (
         <img
           src={imageUrl}
-          alt="Post"
-          className="w-full h-auto rounded mt-2"
+          alt="post"
+          className="w-full rounded-lg border border-white/10 mt-2"
         />
       )}
+      <div className="flex justify-start gap-4 pt-2 text-sm text-white/70">
+        <span>❤️ {likes}</span>
+        <span>💬 0</span>
+        <span>🔁</span>
+      </div>
     </div>
-  );
+  )
 }
