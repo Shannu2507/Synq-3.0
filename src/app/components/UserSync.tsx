@@ -1,27 +1,22 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { useEffect } from "react";
+import { supabase } from "../../lib/supabaseClient";
 
 export default function UserSync() {
   useEffect(() => {
     const syncUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
+      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase.from("users").upsert({
           id: user.id,
           email: user.email,
-          username: user.user_metadata?.full_name || "",
-          avatar_url: user.user_metadata?.avatar_url || "",
-        })
+        });
       }
-    }
+    };
 
-    syncUser()
-  }, [])
+    syncUser();
+  }, []);
 
-  return null
+  return null;
 }
