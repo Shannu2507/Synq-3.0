@@ -1,63 +1,39 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
-import CreatePost from "./components/CreatePost"
-import PostFeed from "./components/PostFeed"
-import UserSync from "./components/UserSync"
+import Sidebar from "./components/Sidebar";
+import CreatePost from "./components/CreatePost";
+import PostFeed from "./components/PostFeed";
+import Explore from "./components/Explore";
+import ProfilePage from "./components/ProfilePage";
+import { useState } from "react";
+import { createBrowserClient } from "@supabase/ssr";
+import { Database } from "@/types/supabase";
+import { useEffect, useState as useReactState } from "react";
 
 export default function App() {
-  const [session, setSession] = useState<any>(null)
+  const [activePage, setActivePage] = useState("home");
 
-  useEffect(() => {
-    const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      setSession(session)
-    }
-
-    getSession()
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({ provider: "google" })
-  }
-
-  const signOut = async () => {
-    await supabase.auth.signOut()
-  }
+  // Optional: If you want to initialize supabase client here globally (useful for context in future)
+  const [supabase] = useReactState(() =>
+    createBrowserClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  );
 
   return (
-    <main className="max-w-xl mx-auto p-4 space-y-6">
-      <UserSync />
-      {!session ? (
-        <button
-          onClick={signInWithGoogle}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-        >
-          Sign in with Google
-        </button>
-      ) : (
-        <>
-          <div className="flex justify-between items-center">
-            <p className="text-white">Logged in as {session.user.email}</p>
-            <button onClick={signOut} className="text-red-500 hover:underline">
-              Logout
-            </button>
-          </div>
-          <CreatePost user={session.user} />
-          <PostFeed />
-        </>
-      )}
-    </main>
-  )
+    <div className="flex min-h-screen bg-black text-white">
+      <Sidebar activePage={activePage} setActivePage={setActivePage} />
+      <main className="flex-1 flex flex-col items-center p-4 gap-4 overflow-y-auto">
+        {activePage === "home" && (
+          <>
+            <CreatePost />
+            <PostFeed />
+          </>
+        )}
+        {activePage === "explore" && <Explore />}
+        {activePage === "profile" && <ProfilePage />}
+      </main>
+    </div>
+  );
 }
