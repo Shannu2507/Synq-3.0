@@ -1,55 +1,61 @@
-'use client'
+// src/app/components/CreatePost.tsx
+"use client"
 
-import { useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { useState } from "react"
+import { supabase } from "@/lib/supabaseClient"
 
-export default function CreatePost({ session }: { session: any }) {
-  const [caption, setCaption] = useState('')
+type Props = {
+  user: any
+}
+
+export default function CreatePost({ user }: Props) {
+  const [caption, setCaption] = useState("")
+  const [image, setImage] = useState<File | null>(null)
 
   const handlePost = async () => {
     if (!caption.trim()) return
 
-    const { data, error } = await supabase.from('posts').insert([
-      {
-        caption,
-        user_id: session.user.id,
-      },
-    ])
+    let imageUrl = null
 
-    if (error) {
-      console.error('Error posting:', error.message)
-    } else {
-      setCaption('')
+    if (image) {
+      const fileExt = image.name.split(".").pop()
+      const fileName = `${Date.now()}.${fileExt}`
+      const { data, error } = await supabase.storage
+        .from("post-images")
+        .upload(fileName, image)
+
+      if (!error) {
+        imageUrl = supabase.storage.from("post-images").getPublicUrl(fileName).data.publicUrl
+      }
     }
-  }
 
-  if (!session) {
-    return (
-      <div className="text-center mt-4">
-        <p className="text-white mb-2">Please sign in to post</p>
-        <button
-          onClick={async () => {
-            await supabase.auth.signInWithOAuth({ provider: 'google' })
-          }}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Sign in with Google
-        </button>
-      </div>
-    )
+    await supabase.from("posts").insert({
+      user_id: user.id,
+      caption,
+      image_url: imageUrl,
+      name: user.user_metadata?.full_name || "Anonymous",
+    })
+
+    setCaption("")
+    setImage(null)
   }
 
   return (
-    <div className="flex flex-col items-center w-full px-4 mt-6">
+    <div className="bg-[#1a1a1a] p-4 rounded-2xl shadow mb-4">
       <textarea
-        className="w-full p-3 rounded text-black"
         placeholder="What's on your mind?"
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
+        className="w-full bg-[#111] text-white p-2 rounded resize-none outline-none"
+      />
+      <input
+        type="file"
+        onChange={(e) => setImage(e.target.files?.[0] || null)}
+        className="mt-2 text-sm text-gray-400"
       />
       <button
         onClick={handlePost}
-        className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        className="mt-2 bg-white text-black px-4 py-2 rounded hover:bg-gray-200 transition"
       >
         Post
       </button>
