@@ -1,24 +1,32 @@
 "use client";
 
-import Link from "next/link";
+import React from "react";
 
-export default function Sidebar({ user, onLogout }: { user: any; onLogout: () => void }) {
+type Props = {
+  activeTab: "home" | "explore" | "profile";
+  setActiveTab: React.Dispatch<React.SetStateAction<"home" | "explore" | "profile">>;
+};
+
+export default function Sidebar({ activeTab, setActiveTab }: Props) {
+  const tabs = [
+    { id: "home", label: "Home" },
+    { id: "explore", label: "Explore" },
+    { id: "profile", label: "Profile" },
+  ];
+
   return (
-    <div className="h-full bg-zinc-950 p-4 space-y-6 text-white">
-      <h1 className="text-2xl font-bold mb-6">Synq</h1>
-
-      <nav className="flex flex-col space-y-4">
-        <Link href="/" className="hover:text-gray-300">Home</Link>
-        <Link href="/explore" className="hover:text-gray-300">Explore</Link>
-        <Link href="/profile" className="hover:text-gray-300">Profile</Link>
-      </nav>
-
-      <button
-        onClick={onLogout}
-        className="mt-6 text-red-400 hover:text-red-500 text-sm"
-      >
-        Logout
-      </button>
+    <div className="w-24 bg-zinc-900 text-white min-h-screen flex flex-col items-center py-4">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => setActiveTab(tab.id as Props["activeTab"])}
+          className={`mb-4 text-sm ${
+            activeTab === tab.id ? "font-bold underline" : ""
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
     </div>
   );
 }
