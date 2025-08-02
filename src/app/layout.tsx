@@ -1,4 +1,4 @@
-import "./styles/global.css"
+import "@/app/styles/global.css"
 
 export const metadata = {
   title: "Synq",
