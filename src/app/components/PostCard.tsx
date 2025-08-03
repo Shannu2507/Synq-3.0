@@ -8,8 +8,6 @@ type Post = {
   content: string
   created_at: string
   user_id: string
-  username: string
-  profile_picture?: string
 }
 
 type PostCardProps = {
@@ -23,14 +21,8 @@ export default function PostCard({ post, session }: PostCardProps) {
   return (
     <div className="bg-zinc-900 p-4 rounded-lg shadow-md">
       <div className="flex items-center mb-2">
-        {post.profile_picture && (
-          <img
-            src={post.profile_picture}
-            alt="profile"
-            className="w-8 h-8 rounded-full mr-2"
-          />
-        )}
-        <span className="font-semibold">{post.username}</span>
+        <div className="w-8 h-8 bg-zinc-700 rounded-full mr-2" />
+        <span className="font-semibold text-white">{post.user_id}</span>
       </div>
       <p className="text-zinc-300">{post.content}</p>
       <div className="text-sm text-zinc-500 mt-2">
