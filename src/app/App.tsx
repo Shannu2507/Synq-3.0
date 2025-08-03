@@ -50,7 +50,7 @@ export default function App() {
             {page === "home" && (
               <>
                 <CreatePost session={session} />
-                <PostFeed />
+                <PostFeed session={session} />
               </>
             )}
             {page === "profile" && <ProfilePage session={session} />}
