@@ -1,27 +1,51 @@
-// src/app/components/Sidebar.tsx
 "use client"
 
-type Props = {
-  setRoute: (route: "home" | "profile" | "explore") => void
-  handleLogout: () => void
+import { Session } from "@supabase/supabase-js"
+
+interface SidebarProps {
+  page: "home" | "profile" | "explore"
+  setPage: (page: "home" | "profile" | "explore") => void
+  session: Session | null
 }
 
-export default function Sidebar({ setRoute, handleLogout }: Props) {
+export default function Sidebar({ page, setPage, session }: SidebarProps) {
   return (
-    <aside className="w-48 bg-[#1a1a1a] h-screen p-4 border-r border-gray-800 flex flex-col space-y-4">
-      <h1 className="text-2xl font-bold text-white mb-6">Synq</h1>
-      <button onClick={() => setRoute("home")} className="text-left text-white hover:bg-[#333] p-2 rounded">
-        Home
-      </button>
-      <button onClick={() => setRoute("explore")} className="text-left text-white hover:bg-[#333] p-2 rounded">
-        Explore
-      </button>
-      <button onClick={() => setRoute("profile")} className="text-left text-white hover:bg-[#333] p-2 rounded">
-        Profile
-      </button>
-      <button onClick={handleLogout} className="mt-auto text-left text-red-500 hover:bg-[#331111] p-2 rounded">
-        Logout
-      </button>
-    </aside>
+    <div className="w-48 bg-zinc-900 p-4 min-h-screen border-r border-zinc-800 hidden sm:block">
+      <div className="text-xl font-bold mb-6 text-white">Synq</div>
+      {session && (
+        <ul className="space-y-2">
+          <li>
+            <button
+              onClick={() => setPage("home")}
+              className={`w-full text-left px-2 py-1 rounded ${
+                page === "home" ? "bg-zinc-800 text-white" : "text-zinc-400"
+              }`}
+            >
+              Home
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => setPage("explore")}
+              className={`w-full text-left px-2 py-1 rounded ${
+                page === "explore" ? "bg-zinc-800 text-white" : "text-zinc-400"
+              }`}
+            >
+              Explore
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => setPage("profile")}
+              className={`w-full text-left px-2 py-1 rounded ${
+                page === "profile" ? "bg-zinc-800 text-white" : "text-zinc-400"
+              }`}
+            >
+              Profile
+            </button>
+          </li>
+        </ul>
+      )}
+    </div>
   )
 }
