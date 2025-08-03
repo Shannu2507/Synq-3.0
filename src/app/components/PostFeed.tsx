@@ -1,71 +1,61 @@
-// src/app/components/PostFeed.tsx
 "use client"
 
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabaseClient"
+import { Session } from "@supabase/supabase-js"
 
 type Props = {
-  session: any
+  session: Session
+}
+
+type Post = {
+  id: string
+  user_id: string
+  content: string
+  created_at: string
+  likes: number
 }
 
 export default function PostFeed({ session }: Props) {
-  const [posts, setPosts] = useState<any[]>([])
-  const [showComments, setShowComments] = useState<Record<string, boolean>>({})
+  const supabase = createClient()
+  const [posts, setPosts] = useState<Post[]>([])
+
+  const fetchPosts = async () => {
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*")
+      .order("created_at", { ascending: false })
+    if (error) console.error("Error fetching posts:", error)
+    else setPosts(data)
+  }
+
+  const handleLike = async (postId: string) => {
+    const { error } = await supabase
+      .from("posts")
+      .update({ likes: (posts.find(p => p.id === postId)?.likes || 0) + 1 })
+      .eq("id", postId)
+    if (error) console.error("Error liking post:", error)
+    else fetchPosts()
+  }
 
   useEffect(() => {
     fetchPosts()
   }, [])
 
-  const fetchPosts = async () => {
-    const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false })
-    if (data) setPosts(data)
-  }
-
-  const handleLike = async (postId: string) => {
-    const { data: post } = await supabase.from("posts").select("likes").eq("id", postId).single()
-    if (!post) return
-
-    await supabase
-      .from("posts")
-      .update({ likes: (post.likes || 0) + 1 })
-      .eq("id", postId)
-
-    fetchPosts()
-  }
-
-  const handleDelete = async (postId: string) => {
-    await supabase.from("posts").delete().eq("id", postId)
-    fetchPosts()
-  }
-
   return (
-    <div className="space-y-4">
+    <div className="w-full max-w-xl space-y-4">
       {posts.map((post) => (
-        <div key={post.id} className="bg-[#1a1a1a] p-4 rounded-2xl shadow">
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold">{post.name}</h2>
-            {post.user_id === session.user.id && (
-              <button
-                onClick={() => handleDelete(post.id)}
-                className="text-sm text-red-500 hover:underline"
-              >
-                Delete
-              </button>
-            )}
-          </div>
-          <p className="mt-2">{post.caption}</p>
-          {post.image_url && (
-            <img src={post.image_url} alt="post" className="mt-2 rounded max-h-80 w-full object-cover" />
-          )}
-          <div className="mt-3 flex space-x-4 text-sm text-gray-400">
-            <button onClick={() => handleLike(post.id)}>❤️ {post.likes || 0}</button>
-            <button onClick={() => setShowComments((prev) => ({ ...prev, [post.id]: !prev[post.id] }))}>
-              💬 Comment
+        <div key={post.id} className="bg-zinc-900 p-4 rounded-lg shadow">
+          <p className="text-white">{post.content}</p>
+          <div className="text-sm text-zinc-400 mt-2 flex justify-between items-center">
+            <span>{new Date(post.created_at).toLocaleString()}</span>
+            <button
+              className="text-blue-500 hover:underline"
+              onClick={() => handleLike(post.id)}
+            >
+              ❤️ {post.likes}
             </button>
           </div>
-          {showComments[post.id] && (
-            <div className="mt-2 text-sm text-gray-500">Comments coming soon...</div>
-          )}
         </div>
       ))}
     </div>
