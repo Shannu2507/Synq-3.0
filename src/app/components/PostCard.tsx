@@ -1,74 +1,86 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabaseClient"
-import { Session } from "@supabase/supabase-js"
 
-type Post = {
-  id: string
-  content: string
+interface PostCardProps {
+  id: number
   username: string
-  created_at: string
+  content: string
   likes: number
+  userId: string
+  currentUserId: string
+  onDelete: (id: number) => void
 }
 
-type Props = {
-  post: Post
-  session: Session | null
-  onDelete?: (postId: string) => void
-}
-
-export default function PostCard({ post, session, onDelete }: Props) {
+export default function PostCard({
+  id,
+  username,
+  content,
+  likes,
+  userId,
+  currentUserId,
+  onDelete,
+}: PostCardProps) {
   const supabase = createClient()
-  const [likes, setLikes] = useState(post.likes || 0)
-  const [liked, setLiked] = useState(false)
+  const [likeCount, setLikeCount] = useState(likes)
+  const [hasLiked, setHasLiked] = useState(false)
+
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      const { data } = await supabase
+        .from("likes")
+        .select("*")
+        .eq("post_id", id)
+        .eq("user_id", currentUserId)
+
+      if (data && data.length > 0) setHasLiked(true)
+    }
+
+    checkLikeStatus()
+  }, [id, currentUserId, supabase])
 
   const handleLike = async () => {
-    if (liked) return
-    const { error } = await supabase
-      .from("posts")
-      .update({ likes: likes + 1 })
-      .eq("id", post.id)
+    if (hasLiked) return
+
+    const { error } = await supabase.from("likes").insert({
+      post_id: id,
+      user_id: currentUserId,
+    })
 
     if (!error) {
-      setLikes(likes + 1)
-      setLiked(true)
+      setHasLiked(true)
+      setLikeCount((prev) => prev + 1)
     }
   }
 
   const handleDelete = async () => {
-    if (session?.user && session.user.email === post.username) {
-      const { error } = await supabase.from("posts").delete().eq("id", post.id)
-      if (!error && onDelete) {
-        onDelete(post.id)
-      }
-    }
+    const { error } = await supabase.from("posts").delete().eq("id", id)
+    if (!error) onDelete(id)
   }
 
   return (
-    <div className="w-full max-w-xl p-4 mb-4 bg-zinc-900 rounded-lg border border-zinc-800 shadow-sm transition hover:shadow-md">
+    <div className="w-full max-w-xl bg-zinc-900 text-white rounded-lg shadow-md p-4 mb-4 border border-zinc-700">
       <div className="flex justify-between items-center mb-2">
-        <span className="text-sm text-zinc-400">
-          {post.username || "Anonymous"}
-        </span>
-        {session?.user && session.user.email === post.username && (
+        <span className="text-sm text-zinc-400 font-medium">{username}</span>
+        {userId === currentUserId && (
           <button
             onClick={handleDelete}
-            className="text-xs text-red-500 hover:underline"
+            className="text-red-500 text-sm hover:underline"
           >
             Delete
           </button>
         )}
       </div>
-      <p className="text-zinc-100 whitespace-pre-wrap">{post.content}</p>
-      <div className="flex items-center gap-4 mt-3 text-zinc-400 text-sm">
+      <p className="text-lg mb-3">{content}</p>
+      <div className="flex items-center text-zinc-400 text-sm">
         <button
           onClick={handleLike}
-          className={`hover:text-white transition flex items-center gap-1 ${liked ? "text-white" : ""}`}
+          className={`mr-2 hover:text-white ${hasLiked ? "text-white" : ""}`}
         >
-          🤍 {likes}
+          ❤️ {likeCount}
         </button>
-        <button className="hover:text-white transition">💬</button>
+        <span className="ml-auto">💬</span>
       </div>
     </div>
   )
