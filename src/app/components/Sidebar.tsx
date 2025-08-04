@@ -1,51 +1,35 @@
-"use client"
+'use client'
 
-import { Session } from "@supabase/supabase-js"
+import React from 'react'
 
-interface SidebarProps {
-  page: "home" | "profile" | "explore"
-  setPage: (page: "home" | "profile" | "explore") => void
-  session: Session | null
+type SidebarProps = {
+  onNavigate: (page: string) => void
+  currentPage: string
 }
 
-export default function Sidebar({ page, setPage, session }: SidebarProps) {
+export default function Sidebar({ onNavigate, currentPage }: SidebarProps) {
   return (
-    <div className="w-48 bg-zinc-900 p-4 min-h-screen border-r border-zinc-800 hidden sm:block">
-      <div className="text-xl font-bold mb-6 text-white">Synq</div>
-      {session && (
-        <ul className="space-y-2">
-          <li>
-            <button
-              onClick={() => setPage("home")}
-              className={`w-full text-left px-2 py-1 rounded ${
-                page === "home" ? "bg-zinc-800 text-white" : "text-zinc-400"
-              }`}
-            >
-              Home
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => setPage("explore")}
-              className={`w-full text-left px-2 py-1 rounded ${
-                page === "explore" ? "bg-zinc-800 text-white" : "text-zinc-400"
-              }`}
-            >
-              Explore
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => setPage("profile")}
-              className={`w-full text-left px-2 py-1 rounded ${
-                page === "profile" ? "bg-zinc-800 text-white" : "text-zinc-400"
-              }`}
-            >
-              Profile
-            </button>
-          </li>
-        </ul>
-      )}
-    </div>
+    <aside className="w-64 bg-gray-900 p-4 text-white">
+      <nav className="flex flex-col gap-4">
+        <button
+          className={`text-left ${currentPage === 'home' ? 'font-bold' : ''}`}
+          onClick={() => onNavigate('home')}
+        >
+          Home
+        </button>
+        <button
+          className={`text-left ${currentPage === 'explore' ? 'font-bold' : ''}`}
+          onClick={() => onNavigate('explore')}
+        >
+          Explore
+        </button>
+        <button
+          className={`text-left ${currentPage === 'profile' ? 'font-bold' : ''}`}
+          onClick={() => onNavigate('profile')}
+        >
+          Profile
+        </button>
+      </nav>
+    </aside>
   )
 }
