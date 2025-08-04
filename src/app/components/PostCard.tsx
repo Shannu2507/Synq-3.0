@@ -1,25 +1,74 @@
-'use client'
+"use client";
 
-export type Post = {
-  id: string
-  content: string
-  created_at: string
-  user_id: string
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabaseClient";
+import { Session } from "@supabase/supabase-js";
+
+interface Props {
+  post: {
+    id: number;
+    content: string;
+    user_id: string;
+    created_at: string;
+  };
+  session: Session;
 }
 
-type Props = {
-  post: Post
-}
+export default function PostCard({ post, session }: Props) {
+  const supabase = createClient();
+  const [likeCount, setLikeCount] = useState(0);
+  const [liked, setLiked] = useState(false);
 
-export default function PostCard({ post }: Props) {
+  useEffect(() => {
+    fetchLikes();
+    checkUserLike();
+  }, []);
+
+  const fetchLikes = async () => {
+    const { count } = await supabase
+      .from("likes")
+      .select("*", { count: "exact", head: true })
+      .eq("post_id", post.id);
+
+    setLikeCount(count || 0);
+  };
+
+  const checkUserLike = async () => {
+    const { data } = await supabase
+      .from("likes")
+      .select("*")
+      .eq("post_id", post.id)
+      .eq("user_id", session.user.id)
+      .single();
+
+    setLiked(!!data);
+  };
+
+  const toggleLike = async () => {
+    if (liked) {
+      await supabase
+        .from("likes")
+        .delete()
+        .eq("post_id", post.id)
+        .eq("user_id", session.user.id);
+      setLiked(false);
+      setLikeCount((prev) => prev - 1);
+    } else {
+      await supabase.from("likes").insert({
+        post_id: post.id,
+        user_id: session.user.id,
+      });
+      setLiked(true);
+      setLikeCount((prev) => prev + 1);
+    }
+  };
+
   return (
-    <div className="bg-white dark:bg-neutral-900 p-4 rounded-xl shadow">
-      <p className="text-sm text-neutral-800 dark:text-neutral-200">
-        {post.content}
-      </p>
-      <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-        Posted on: {new Date(post.created_at).toLocaleString()}
-      </p>
+    <div className="border border-gray-700 p-4 rounded-lg bg-[#1a1a1a]">
+      <p className="mb-2">{post.content}</p>
+      <button onClick={toggleLike} className="flex items-center gap-2 text-sm">
+        {liked ? "❤️ Liked" : "🤍 Like"} {likeCount} likes
+      </button>
     </div>
-  )
+  );
 }
