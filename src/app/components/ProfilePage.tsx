@@ -2,14 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import PostCard from './PostCard'
-
-type Post = {
-  id: string
-  content: string
-  created_at: string
-  user_id: string
-}
+import PostCard, { Post } from './PostCard'
 
 export default function ProfilePage() {
   const [session, setSession] = useState<any>(null)
