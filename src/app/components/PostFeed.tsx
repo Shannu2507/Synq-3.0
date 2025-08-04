@@ -1,46 +1,36 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import supabase from '../../../lib/supabaseClient'
+import { Database } from '@/types/supabase'
 import { Session } from '@supabase/supabase-js'
+import supabase from '@/lib/supabaseClient'
+import PostCard from './PostCard'
 
-type Post = {
-  id: string
-  content: string
-  created_at: string
-  username: string
-  like_count: number
-}
+type Post = Database['public']['Tables']['posts']['Row']
+type Like = Database['public']['Tables']['likes']['Row']
+type Comment = Database['public']['Tables']['comments']['Row']
 
-interface PostFeedProps {
+interface Props {
   session: Session
 }
 
-function formatTimeAgo(dateString: string) {
-  const date = new Date(dateString)
-  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000)
+export default function PostFeed({ session }: Props) {
+  const [posts, setPosts] = useState<PostWithExtras[]>([])
 
-  if (seconds < 60) return 'just now'
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes} min ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  return `${days}d ago`
-}
-
-export default function PostFeed({ session }: PostFeedProps) {
-  const [posts, setPosts] = useState<Post[]>([])
+  type PostWithExtras = Post & {
+    likes: Like[]
+    comments: Comment[]
+  }
 
   useEffect(() => {
     const fetchPosts = async () => {
       const { data, error } = await supabase
         .from('posts')
-        .select('*')
+        .select('*, likes(*), comments(*)')
         .order('created_at', { ascending: false })
 
-      if (error) console.error(error)
-      else setPosts(data as Post[])
+      if (error) console.error('Error loading posts:', error)
+      else setPosts(data as PostWithExtras[])
     }
 
     fetchPosts()
@@ -49,20 +39,7 @@ export default function PostFeed({ session }: PostFeedProps) {
   return (
     <div className="p-4 space-y-4">
       {posts.map((post) => (
-        <div
-          key={post.id}
-          className="bg-zinc-900 rounded-xl p-4 shadow text-white"
-        >
-          <div className="text-sm text-gray-400 flex justify-between">
-            <span>{post.username || 'Anonymous'}</span>
-            <span>{formatTimeAgo(post.created_at)}</span>
-          </div>
-          <p className="text-lg mt-2">{post.content}</p>
-          <div className="flex items-center mt-2 text-sm text-gray-500 gap-4">
-            <span>🤍 {post.like_count || 0}</span>
-            <span>💬 Comment</span>
-          </div>
-        </div>
+        <PostCard key={post.id} post={post} session={session} />
       ))}
     </div>
   )
