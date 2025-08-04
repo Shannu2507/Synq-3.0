@@ -3,7 +3,7 @@
 import createClient from "@/lib/supabaseClient"
 
 export default function SignIn() {
-  const supabase = createClient()
+  const supabase = createClient 
 
   const handleSignIn = async () => {
     await supabase.auth.signInWithOAuth({
