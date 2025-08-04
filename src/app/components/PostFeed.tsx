@@ -16,7 +16,7 @@ export default function PostFeed({ session }: Props) {
     const fetchPosts = async () => {
       const { data, error } = await supabase
         .from('posts')
-        .select('*') // ✅ includes created_at
+        .select('*')
         .order('created_at', { ascending: false })
 
       if (!error && data) {
@@ -29,9 +29,16 @@ export default function PostFeed({ session }: Props) {
 
   return (
     <div className="p-4">
-      {posts.map((post) => (
-        <PostCard key={post.id} post={post} currentUser={session.user} />
-      ))}
+      {posts.map((post) => {
+        console.log('🔥 Post object:', post) // Debug: full post
+        return (
+          <PostCard
+            key={post.id}
+            post={post}
+            currentUser={session.user}
+          />
+        )
+      })}
     </div>
   )
 }
