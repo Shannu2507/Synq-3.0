@@ -8,6 +8,32 @@ interface Props {
   currentUser: any
 }
 
+// ✅ Added: time ago function (no external library)
+function getTimeAgo(dateString: string) {
+  const date = new Date(dateString)
+  const now = new Date()
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+  const intervals = [
+    { label: 'year', seconds: 31536000 },
+    { label: 'month', seconds: 2592000 },
+    { label: 'week', seconds: 604800 },
+    { label: 'day', seconds: 86400 },
+    { label: 'hour', seconds: 3600 },
+    { label: 'minute', seconds: 60 },
+    { label: 'second', seconds: 1 },
+  ]
+
+  for (const interval of intervals) {
+    const count = Math.floor(seconds / interval.seconds)
+    if (count >= 1) {
+      return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`
+    }
+  }
+
+  return 'just now'
+}
+
 export default function PostCard({ post, currentUser }: Props) {
   const [likes, setLikes] = useState<number>(post.likes || 0)
   const [comments, setComments] = useState<any[]>([])
@@ -72,7 +98,11 @@ export default function PostCard({ post, currentUser }: Props) {
 
   return (
     <div className="bg-[#111] border border-neutral-800 p-4 rounded-md shadow-sm mb-4">
-      <p className="text-sm text-gray-300 mb-2">{post.username}</p>
+      <div className="flex justify-between items-center mb-2">
+        <p className="text-sm text-gray-300">{post.username}</p>
+        {/* ✅ Added time ago */}
+        <p className="text-xs text-neutral-500">{getTimeAgo(post.created_at)}</p>
+      </div>
       <p className="text-white mb-4">{post.content}</p>
       <div className="flex items-center space-x-4 text-sm text-gray-400">
         <button onClick={handleLike} className="hover:text-red-400 transition">
