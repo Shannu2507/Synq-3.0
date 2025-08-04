@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Session } from '@supabase/supabase-js'
-import supabase from '../../lib/supabaseClient'
+import supabase from '../lib/supabaseClient'
 import Sidebar from './components/Sidebar'
 import TopNav from './components/TopNav'
 import CreatePost from './components/CreatePost'
