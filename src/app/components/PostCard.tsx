@@ -1,72 +1,114 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import supabase from "@/lib/supabaseClient";
-import { MessageCircle, Heart } from "lucide-react";
+import React, { useEffect, useState } from 'react'
+import supabase from '@/lib/supabaseClient'
 
 interface Props {
-  post: any;
-  currentUser: any;
+  post: any
+  currentUser: any
 }
 
 export default function PostCard({ post, currentUser }: Props) {
-  const [likes, setLikes] = useState(post.likes || 0);
-  const [hasLiked, setHasLiked] = useState(false);
+  const [likes, setLikes] = useState<number>(post.likes || 0)
+  const [comments, setComments] = useState<any[]>([])
+  const [showComments, setShowComments] = useState(false)
+  const [newComment, setNewComment] = useState('')
 
   useEffect(() => {
-    if (!currentUser) return;
+    fetchComments()
+  }, [])
 
-    const checkLike = async () => {
-      const { data } = await supabase
-        .from("likes")
-        .select("*")
-        .eq("user_id", currentUser.id)
-        .eq("post_id", post.id)
-        .single();
+  const fetchComments = async () => {
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('post_id', post.id)
+      .order('created_at', { ascending: true })
 
-      setHasLiked(!!data);
-    };
-
-    checkLike();
-  }, [currentUser, post.id]);
+    if (!error && data) {
+      setComments(data)
+    }
+  }
 
   const handleLike = async () => {
-    if (!currentUser || hasLiked) return;
+    const { data: existingLikes, error: likeCheckError } = await supabase
+      .from('likes')
+      .select('*')
+      .eq('post_id', post.id)
+      .eq('user_id', currentUser.id)
 
-    // Insert new like
-    const { error } = await supabase.from("likes").insert([
+    if (likeCheckError || existingLikes.length > 0) {
+      return
+    }
+
+    const { error: likeError } = await supabase.from('likes').insert([
       {
-        user_id: currentUser.id,
         post_id: post.id,
+        user_id: currentUser.id,
       },
-    ]);
+    ])
+
+    if (!likeError) {
+      setLikes((prev) => prev + 1)
+    }
+  }
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return
+
+    const { data, error } = await supabase.from('comments').insert([
+      {
+        post_id: post.id,
+        user_id: currentUser.id,
+        content: newComment,
+      },
+    ])
 
     if (!error) {
-      setLikes((prev) => prev + 1);
-      setHasLiked(true);
-
-      // Update post's like count
-      await supabase
-        .from("posts")
-        .update({ likes: likes + 1 })
-        .eq("id", post.id);
+      setNewComment('')
+      fetchComments()
     }
-  };
+  }
 
   return (
-    <div className="bg-zinc-900 rounded-md p-4 my-2">
-      <p className="font-semibold">{post.username || "Anonymous"}</p>
-      <p className="text-white my-2">{post.content}</p>
-      <div className="flex items-center gap-4 text-zinc-400 text-sm">
-        <button onClick={handleLike} disabled={hasLiked} className="flex items-center gap-1">
-          <Heart className={`w-4 h-4 ${hasLiked ? "text-red-500" : ""}`} />
-          {likes}
+    <div className="bg-[#111] border border-neutral-800 p-4 rounded-md shadow-sm mb-4">
+      <p className="text-sm text-gray-300 mb-2">{post.username}</p>
+      <p className="text-white mb-4">{post.content}</p>
+      <div className="flex items-center space-x-4 text-sm text-gray-400">
+        <button onClick={handleLike} className="hover:text-red-400 transition">
+          ❤️ {likes}
         </button>
-        <div className="flex items-center gap-1">
-          <MessageCircle className="w-4 h-4" />
-          {post.comments_count || 0}
-        </div>
+        <button
+          onClick={() => setShowComments((prev) => !prev)}
+          className="hover:text-blue-400 transition"
+        >
+          💬 {comments.length}
+        </button>
       </div>
+      {showComments && (
+        <div className="mt-3 space-y-2">
+          {comments.map((comment) => (
+            <p key={comment.id} className="text-sm text-gray-300">
+              {comment.content}
+            </p>
+          ))}
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              placeholder="Add comment..."
+              className="flex-1 px-2 py-1 bg-neutral-900 text-white border border-neutral-700 rounded"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+            />
+            <button
+              onClick={handleAddComment}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+            >
+              Post
+            </button>
+          </div>
+        </div>
+      )}
     </div>
-  );
+  )
 }
