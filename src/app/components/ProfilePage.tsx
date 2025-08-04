@@ -1,52 +1,46 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
-import PostCard, { Post } from './PostCard'
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabaseClient";
+import { Session } from "@supabase/supabase-js";
+import PostCard from "./PostCard";
 
-export default function ProfilePage() {
-  const [session, setSession] = useState<any>(null)
-  const [posts, setPosts] = useState<Post[]>([])
+interface Props {
+  session: Session;
+}
+
+interface Post {
+  id: number;
+  content: string;
+  user_id: string;
+  created_at: string;
+}
+
+export default function ProfilePage({ session }: Props) {
+  const supabase = createClient();
+  const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      setSession(session)
-    }
-
-    getSession()
-  }, [])
-
-  useEffect(() => {
-    if (session?.user.id) {
-      fetchUserPosts()
-    }
-  }, [session])
+    fetchUserPosts();
+  }, []);
 
   const fetchUserPosts = async () => {
     const { data, error } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false })
+      .from("posts")
+      .select("*")
+      .eq("user_id", session.user.id)
+      .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error('Error fetching user posts:', error.message)
-    } else {
-      setPosts(data || [])
-    }
-  }
-
-  if (!session) return null
+    if (data) setPosts(data as Post[]);
+    if (error) console.error("Failed to fetch user posts:", error);
+  };
 
   return (
-    <div className="p-4 space-y-4">
+    <div>
       <h2 className="text-lg font-bold mb-4">Your Posts</h2>
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <PostCard key={post.id} post={post} session={session} />
       ))}
     </div>
-  )
+  );
 }
