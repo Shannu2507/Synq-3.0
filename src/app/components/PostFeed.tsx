@@ -16,7 +16,7 @@ export default function PostFeed({ session }: Props) {
     const fetchPosts = async () => {
       const { data, error } = await supabase
         .from('posts')
-        .select('*')
+        .select('*') // ✅ includes created_at
         .order('created_at', { ascending: false })
 
       if (!error && data) {
