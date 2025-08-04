@@ -1,36 +1,30 @@
-"use client";
+'use client'
 
-import { useEffect } from "react";
-import supabase from "@/lib/supabaseClient";
+import { Session } from '@supabase/supabase-js'
+import { useEffect } from 'react'
+import supabase from '@/lib/supabaseClient'
 
-export default function UserSync() {
+type Props = {
+  session: Session
+}
+
+export default function UserSync({ session }: Props) {
   useEffect(() => {
+    if (!session) return
+
     const syncUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const user = session.user
+      const { error } = await supabase
+        .from('users')
+        .upsert({ id: user.id, email: user.email })
 
-      if (!session?.user) return;
-
-      const user = session.user;
-
-      const { data: existing, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (!existing && !error) {
-        await supabase.from("profiles").insert({
-          id: user.id,
-          username: user.user_metadata.full_name || user.email,
-          profile_picture: user.user_metadata.avatar_url || "",
-        });
+      if (error) {
+        console.error('Error syncing user:', error.message)
       }
-    };
+    }
 
-    syncUser();
-  }, []);
+    syncUser()
+  }, [session])
 
-  return null;
+  return null
 }
