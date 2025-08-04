@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { useSession } from '@/lib/useSession'
 
 type Post = {
   id: string
@@ -15,14 +14,25 @@ export default function PostFeed() {
   const [posts, setPosts] = useState<Post[]>([])
   const [likes, setLikes] = useState<{ [postId: string]: number }>({})
   const [userLikes, setUserLikes] = useState<{ [postId: string]: boolean }>({})
-  const { session } = useSession()
+  const [session, setSession] = useState<any>(null)
+
+  useEffect(() => {
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      setSession(session)
+    }
+
+    getSession()
+  }, [])
 
   useEffect(() => {
     fetchPosts()
   }, [])
 
   useEffect(() => {
-    if (session?.user.id) {
+    if (session?.user?.id) {
       fetchUserLikes(session.user.id)
     }
   }, [session])
@@ -81,7 +91,6 @@ export default function PostFeed() {
     const alreadyLiked = userLikes[postId]
 
     if (alreadyLiked) {
-      // Unlike
       const { error } = await supabase
         .from('likes')
         .delete()
@@ -96,7 +105,6 @@ export default function PostFeed() {
         }))
       }
     } else {
-      // Like
       const { error } = await supabase.from('likes').insert({
         user_id: userId,
         post_id: postId,
