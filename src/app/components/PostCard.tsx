@@ -8,7 +8,7 @@ interface Props {
   currentUser: any
 }
 
-// ✅ Added: time ago function (no external library)
+// ✅ Time ago function (no libraries)
 function getTimeAgo(dateString: string) {
   const date = new Date(dateString)
   const now = new Date()
@@ -82,7 +82,7 @@ export default function PostCard({ post, currentUser }: Props) {
   const handleAddComment = async () => {
     if (!newComment.trim()) return
 
-    const { data, error } = await supabase.from('comments').insert([
+    const { error } = await supabase.from('comments').insert([
       {
         post_id: post.id,
         user_id: currentUser.id,
@@ -100,8 +100,8 @@ export default function PostCard({ post, currentUser }: Props) {
     <div className="bg-[#111] border border-neutral-800 p-4 rounded-md shadow-sm mb-4">
       <div className="flex justify-between items-center mb-2">
         <p className="text-sm text-gray-300">{post.username}</p>
-        {/* ✅ Added time ago */}
-        <p className="text-xs text-neutral-500">{getTimeAgo(post.created_at)}</p>
+        {/* ✅ Time ago visible */}
+        <p className="text-sm text-white">{getTimeAgo(post.created_at)}</p>
       </div>
       <p className="text-white mb-4">{post.content}</p>
       <div className="flex items-center space-x-4 text-sm text-gray-400">
