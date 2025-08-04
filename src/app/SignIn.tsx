@@ -1,23 +1,24 @@
-"use client";
+"use client"
 
-import { createClient } from "@/lib/supabaseClient";
+import createClient from "@/lib/supabaseClient"
 
 export default function SignIn() {
-  const supabase = createClient();
+  const supabase = createClient()
 
-  const handleLogin = async () => {
-    await supabase.auth.signInWithOAuth({ provider: "google" });
-  };
+  const handleSignIn = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+    })
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-black text-white">
-      <h1 className="text-3xl font-bold mb-4">Welcome to Synq</h1>
+    <div className="flex items-center justify-center min-h-screen bg-black text-white">
       <button
-        onClick={handleLogin}
-        className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded text-white"
+        onClick={handleSignIn}
+        className="px-6 py-3 bg-white text-black font-semibold rounded hover:bg-gray-200 transition"
       >
         Sign in with Google
       </button>
     </div>
-  );
+  )
 }
