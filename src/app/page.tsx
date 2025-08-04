@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { Session } from '@supabase/supabase-js'
-import supabase from '@/lib/supabaseClient'
-import Sidebar from '@/components/Sidebar'
-import TopNav from '@/components/TopNav'
-import CreatePost from '@/components/CreatePost'
-import PostFeed from '@/components/PostFeed'
-import ExplorePage from '@/components/Explore'
-import ProfilePage from '@/components/ProfilePage'
-import UserSync from '@/components/UserSync'
+import supabase from '../../lib/supabaseClient'
+import Sidebar from './components/Sidebar'
+import TopNav from './components/TopNav'
+import CreatePost from './components/CreatePost'
+import PostFeed from './components/PostFeed'
+import ExplorePage from './components/Explore'
+import ProfilePage from './components/ProfilePage'
+import UserSync from './components/UserSync'
 
 export default function HomePage() {
   const [session, setSession] = useState<Session | null>(null)
