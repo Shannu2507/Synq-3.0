@@ -8,7 +8,7 @@ interface Props {
   currentUser: any
 }
 
-// ✅ Time ago function (no libraries)
+// Time ago function (kept for later, but using raw timestamp for now)
 function getTimeAgo(dateString: string) {
   const date = new Date(dateString)
   const now = new Date()
@@ -43,6 +43,9 @@ export default function PostCard({ post, currentUser }: Props) {
   useEffect(() => {
     fetchComments()
   }, [])
+
+  // ✅ Log the created_at value to debug
+  console.log('DEBUG - created_at:', post.created_at)
 
   const fetchComments = async () => {
     const { data, error } = await supabase
@@ -100,8 +103,8 @@ export default function PostCard({ post, currentUser }: Props) {
     <div className="bg-[#111] border border-neutral-800 p-4 rounded-md shadow-sm mb-4">
       <div className="flex justify-between items-center mb-2">
         <p className="text-sm text-gray-300">{post.username}</p>
-        {/* ✅ Time ago visible */}
-        <p className="text-sm text-white">{getTimeAgo(post.created_at)}</p>
+        {/* ✅ Temporarily show raw timestamp to confirm visibility */}
+        <p className="text-sm text-white">{post.created_at || 'no timestamp'}</p>
       </div>
       <p className="text-white mb-4">{post.content}</p>
       <div className="flex items-center space-x-4 text-sm text-gray-400">
