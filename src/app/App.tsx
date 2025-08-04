@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import CreatePost from './components/CreatePost'
 import PostFeed from './components/PostFeed'
 import ProfilePage from './components/ProfilePage'
-import ExplorePage from './components/ExplorePage'
+import ExplorePage from './components/explorePage'
 
 export default function App() {
   const [page, setPage] = useState<'home' | 'profile' | 'explore'>('home')
