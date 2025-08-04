@@ -1,46 +1,39 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabaseClient";
-import { Session } from "@supabase/supabase-js";
-import PostCard from "./PostCard";
+import { useEffect, useState } from 'react'
+import { Session } from '@supabase/supabase-js'
+import supabase from '@/lib/supabaseClient'
+import PostCard from './PostCard'
 
-interface Props {
-  session: Session;
-}
-
-interface Post {
-  id: number;
-  content: string;
-  user_id: string;
-  created_at: string;
+type Props = {
+  session: Session
 }
 
 export default function ProfilePage({ session }: Props) {
-  const supabase = createClient();
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<any[]>([])
 
   useEffect(() => {
-    fetchUserPosts();
-  }, []);
+    const fetchPosts = async () => {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false })
 
-  const fetchUserPosts = async () => {
-    const { data, error } = await supabase
-      .from("posts")
-      .select("*")
-      .eq("user_id", session.user.id)
-      .order("created_at", { ascending: false });
+      if (!error && data) {
+        setPosts(data)
+      }
+    }
 
-    if (data) setPosts(data as Post[]);
-    if (error) console.error("Failed to fetch user posts:", error);
-  };
+    fetchPosts()
+  }, [session.user.id])
 
   return (
-    <div>
-      <h2 className="text-lg font-bold mb-4">Your Posts</h2>
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">Your Posts</h2>
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} session={session} />
+        <PostCard key={post.id} post={post} currentUser={session.user} />
       ))}
     </div>
-  );
+  )
 }
