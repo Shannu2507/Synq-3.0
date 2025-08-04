@@ -5,26 +5,25 @@ import { Session } from '@supabase/supabase-js'
 import supabase from '@/lib/supabaseClient'
 import PostCard from '../components/PostCard'
 
-interface Props {
-  session: Session | null
-}
-
-export default function ExplorePage({ session }: Props) {
+export default function ExplorePage() {
   const [posts, setPosts] = useState<any[]>([])
+  const [session, setSession] = useState<Session | null>(null)
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (!error && data) {
-        setPosts(data)
-      }
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setSession(session)
     }
 
-    fetchPosts()
+    getSession()
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => {
+      listener.subscription.unsubscribe()
+    }
   }, [])
 
   return (
