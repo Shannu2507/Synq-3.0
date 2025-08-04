@@ -1,47 +1,53 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { createClient } from "@/lib/supabaseClient"
-import { Session } from "@supabase/supabase-js"
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabaseClient'
 
-export default function CreatePost({ session }: { session: Session }) {
-  const supabase = createClient()
-  const [content, setContent] = useState("")
-  const [username, setUsername] = useState("")
+export default function CreatePost() {
+  const [session, setSession] = useState<any>(null)
+  const [content, setContent] = useState('')
 
-  const handlePost = async () => {
-    if (!content.trim()) return
+  useEffect(() => {
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      setSession(session)
+    }
 
-    const { error } = await supabase.from("posts").insert({
-      content,
-      username: username.trim() === "" ? "Anonymous" : username,
+    getSession()
+  }, [])
+
+  const handleSubmit = async () => {
+    if (!content.trim() || !session?.user) return
+
+    const { error } = await supabase.from('posts').insert({
+      content: content.trim(),
       user_id: session.user.id,
     })
 
-    if (!error) {
-      setContent("")
-      setUsername("")
+    if (error) {
+      console.error('Error creating post:', error.message)
+    } else {
+      setContent('')
     }
   }
 
+  if (!session) {
+    return null
+  }
+
   return (
-    <div className="w-full max-w-xl mb-6 bg-zinc-900 p-6 rounded-lg shadow-md border border-zinc-700">
-      <input
-        type="text"
-        placeholder="Name"
-        className="w-full mb-3 px-4 py-2 bg-zinc-800 text-white rounded-md placeholder-zinc-500 focus:outline-none focus:ring focus:ring-blue-500"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
+    <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
       <textarea
-        placeholder="What's on your mind?"
-        className="w-full mb-4 px-4 py-2 h-24 bg-zinc-800 text-white rounded-md placeholder-zinc-500 focus:outline-none focus:ring focus:ring-blue-500 resize-none"
         value={content}
         onChange={(e) => setContent(e.target.value)}
+        placeholder="What's on your mind?"
+        className="w-full p-2 rounded-md border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm text-black dark:text-white"
       />
       <button
-        onClick={handlePost}
-        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-200 w-full"
+        onClick={handleSubmit}
+        className="mt-2 px-4 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
       >
         Post
       </button>
