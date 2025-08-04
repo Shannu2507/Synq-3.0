@@ -1,53 +1,43 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { useState } from "react"
+import supabase from "@/lib/supabaseClient" // ✅ fixed import
 
 export default function NewPostForm() {
-  const [content, setContent] = useState("");
-  const [author, setAuthor] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [content, setContent] = useState("")
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!content || !author) return;
+  const handlePost = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-    setLoading(true);
-    const { error } = await supabase.from("posts").insert([{ content, author }]);
-    setLoading(false);
+    if (!user) return
 
-    if (error) {
-      console.error("Error adding post:", error.message);
-    } else {
-      setContent("");
-      setAuthor("");
-      window.location.reload(); // TEMP fix — will upgrade to live updates later
-    }
+    await supabase.from("posts").insert({
+      content,
+      user_id: user.id,
+      username: user.user_metadata.full_name || user.email,
+    })
+
+    setContent("")
+    window.location.reload()
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6 space-y-3 bg-white p-4 rounded-xl shadow">
-      <h2 className="text-lg font-semibold">Create a New Post</h2>
-      <input
-        type="text"
-        placeholder="Your name"
-        value={author}
-        onChange={(e) => setAuthor(e.target.value)}
-        className="w-full border p-2 rounded"
-      />
+    <div className="p-4 border-t border-gray-700">
       <textarea
+        className="w-full bg-gray-900 text-white border border-gray-600 rounded p-2 resize-none"
+        rows={3}
         placeholder="What's on your mind?"
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        className="w-full border p-2 rounded h-24"
       />
       <button
-        type="submit"
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-        disabled={loading}
+        onClick={handlePost}
+        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
       >
-        {loading ? "Posting..." : "Post"}
+        Post
       </button>
-    </form>
-  );
+    </div>
+  )
 }
