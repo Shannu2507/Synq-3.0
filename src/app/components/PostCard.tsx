@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import supabase from "@/lib/supabaseClient"
+import { User } from "@supabase/supabase-js"
 
 interface Post {
   id: number
@@ -13,9 +14,10 @@ interface Post {
 
 interface Props {
   post: Post
+  currentUser: User
 }
 
-export default function PostCard({ post }: Props) {
+export default function PostCard({ post, currentUser }: Props) {
   const [likes, setLikes] = useState<number>(0)
 
   useEffect(() => {
