@@ -1,9 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://pyvqjtatbyqxnsmhgixw.supabase.co'
-const supabaseAnonKey =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5dnFqdGF0YnlxeG5zbWhnaXh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM1MjM5NDEsImV4cCI6MjA2OTA5OTk0MX0.zjdNfe3kF_ZtdlJHfcE1guYbQd5EXeOfqlo6YC0cg8M'
+// Your Supabase project URL and anon key
+const supabaseUrl = 'https://qqhihokobnhzzkzogzmm.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxaGlob2tvYm5oenprem9nem1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTIwMjA3NzIsImV4cCI6MjAyNzU5Njc3Mn0.gG6ajTfU1tRhRx5Q5K8AG_PgbDdPB5pL5Pj7gWpbEQI'
 
+// Create a single supabase client for your app
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export default supabase
