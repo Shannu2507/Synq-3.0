@@ -1,56 +1,44 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { useState } from "react";
+import { createClient } from "@/lib/supabaseClient";
+import { Session } from "@supabase/supabase-js";
 
-export default function CreatePost() {
-  const [session, setSession] = useState<any>(null)
-  const [content, setContent] = useState('')
+interface Props {
+  session: Session;
+}
 
-  useEffect(() => {
-    const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      setSession(session)
-    }
+export default function CreatePost({ session }: Props) {
+  const [content, setContent] = useState("");
+  const supabase = createClient();
 
-    getSession()
-  }, [])
+  const handlePost = async () => {
+    if (!content.trim()) return;
 
-  const handleSubmit = async () => {
-    if (!content.trim() || !session?.user) return
+    await supabase.from("posts").insert([
+      {
+        content,
+        user_id: session.user.id,
+      },
+    ]);
 
-    const { error } = await supabase.from('posts').insert({
-      content: content.trim(),
-      user_id: session.user.id,
-    })
-
-    if (error) {
-      console.error('Error creating post:', error.message)
-    } else {
-      setContent('')
-    }
-  }
-
-  if (!session) {
-    return null
-  }
+    setContent("");
+  };
 
   return (
-    <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
+    <div className="mb-6">
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="What's on your mind?"
-        className="w-full p-2 rounded-md border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm text-black dark:text-white"
+        className="w-full p-3 rounded bg-[#1a1a1a] text-white border border-gray-600"
       />
       <button
-        onClick={handleSubmit}
-        className="mt-2 px-4 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+        onClick={handlePost}
+        className="mt-2 px-4 py-2 bg-green-600 rounded hover:bg-green-700 transition"
       >
         Post
       </button>
     </div>
-  )
+  );
 }
