@@ -1,35 +1,28 @@
-// src/app/components/UserSync.tsx
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { useEffect } from "react";
+import { createClient } from "@/lib/supabaseClient";
+import { Session } from "@supabase/supabase-js";
 
-type Props = {
-  session: any
+interface Props {
+  session: Session;
 }
 
 export default function UserSync({ session }: Props) {
+  const supabase = createClient();
+
   useEffect(() => {
     const syncUser = async () => {
-      const { data: existing } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", session.user.id)
-        .single()
+      if (!session?.user) return;
 
-      if (!existing) {
-        await supabase.from("users").insert({
-          id: session.user.id,
-          email: session.user.email,
-          username: session.user.user_metadata?.full_name || "Anonymous",
-        })
-      }
-    }
+      await supabase.from("users").upsert({
+        id: session.user.id,
+        email: session.user.email,
+      });
+    };
 
-    if (session?.user) {
-      syncUser()
-    }
-  }, [session])
+    syncUser();
+  }, [session, supabase]);
 
-  return null
+  return null;
 }
