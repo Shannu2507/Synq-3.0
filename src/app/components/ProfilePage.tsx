@@ -5,35 +5,52 @@ import { Session } from '@supabase/supabase-js'
 import supabase from '@/lib/supabaseClient'
 import PostCard from './PostCard'
 
-type Props = {
+interface Props {
   session: Session
 }
 
 export default function ProfilePage({ session }: Props) {
   const [posts, setPosts] = useState<any[]>([])
+  const [username, setUsername] = useState<string>('')
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      const { data, error } = await supabase
+    const fetchUserAndPosts = async () => {
+      if (!session) return
+
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('username')
+        .eq('id', session.user.id)
+        .single()
+
+      if (!userError && userData) {
+        setUsername(userData.username)
+      }
+
+      const { data: postsData, error: postsError } = await supabase
         .from('posts')
         .select('*')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false })
 
-      if (!error && data) {
-        setPosts(data)
+      if (!postsError && postsData) {
+        setPosts(postsData)
       }
     }
 
-    fetchPosts()
-  }, [session.user.id])
+    fetchUserAndPosts()
+  }, [session])
 
   return (
-    <div className="p-4">
+    <div className="p-6 text-white">
+      <h1 className="text-3xl font-bold mb-4">Profile</h1>
+      <p className="mb-2 text-lg">Username: {username}</p>
       <h2 className="text-xl font-bold mb-4">Your Posts</h2>
-      {posts.map((post) => (
-        <PostCard key={post.id} post={post} currentUser={session.user} />
-      ))}
+      <div className="flex flex-col gap-4">
+        {posts.map((post) => (
+          <PostCard key={post.id} post={post} session={session} />
+        ))}
+      </div>
     </div>
   )
 }
