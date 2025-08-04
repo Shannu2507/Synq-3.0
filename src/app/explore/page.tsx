@@ -1,10 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Session } from '@supabase/supabase-js'
 import supabase from '@/lib/supabaseClient'
 import PostCard from '../components/PostCard'
 
-export default function ExplorePage() {
+interface Props {
+  session: Session | null
+}
+
+export default function ExplorePage({ session }: Props) {
   const [posts, setPosts] = useState<any[]>([])
 
   useEffect(() => {
@@ -23,11 +28,13 @@ export default function ExplorePage() {
   }, [])
 
   return (
-    <div className="p-4">
+    <div className="p-6 text-white">
       <h2 className="text-xl font-bold mb-4">Explore</h2>
-      {posts.map((post) => (
-        <PostCard key={post.id} post={post} currentUser={null} />
-      ))}
+      <div className="flex flex-col gap-4">
+        {posts.map((post) => (
+          <PostCard key={post.id} post={post} session={session} />
+        ))}
+      </div>
     </div>
   )
 }
