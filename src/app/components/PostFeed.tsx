@@ -1,54 +1,46 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Session } from '@supabase/supabase-js'
 import supabase from '../../lib/supabaseClient'
-import { formatDistanceToNow } from 'date-fns'
-import LikeButton from './LikeButton'
 
-export default function PostFeed() {
-  const [posts, setPosts] = useState<any[]>([])
-  const [userId, setUserId] = useState<string | null>(null)
+type Post = {
+  id: number
+  content: string
+  created_at: string
+  user_id: string
+  username: string
+}
+
+type Props = {
+  session: Session | null
+}
+
+export default function PostFeed({ session }: Props) {
+  const [posts, setPosts] = useState<Post[]>([])
 
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      setUserId(session?.user?.id ?? null)
-    }
-
     const fetchPosts = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-
-      if (!session?.user) return
-
       const { data, error } = await supabase
         .from('posts')
         .select('*')
-        .eq('user_id', session.user.id)
         .order('created_at', { ascending: false })
 
-      if (!error) setPosts(data || [])
+      if (!error && data) setPosts(data)
     }
 
-    getUser()
     fetchPosts()
   }, [])
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4">
       {posts.map((post) => (
         <div
           key={post.id}
-          className="bg-zinc-900 p-4 rounded-xl shadow-md border border-zinc-700"
+          className="p-4 bg-zinc-900 border border-zinc-700 rounded"
         >
-          <div className="text-sm text-zinc-400">
-            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-          </div>
-          <p className="text-lg mt-2">{post.content}</p>
-          <LikeButton postId={post.id} userId={userId} />
+          <p className="text-sm text-gray-400 mb-2">{post.username}</p>
+          <p className="text-white">{post.content}</p>
         </div>
       ))}
     </div>
