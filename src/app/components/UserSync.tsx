@@ -1,20 +1,18 @@
-// src/app/components/UserSync.tsx
-
 'use client'
 
 import { useEffect } from 'react'
 import { Session } from '@supabase/supabase-js'
 import supabase from '../../lib/supabaseClient'
 
-interface UserSyncProps {
+type Props = {
   session: Session
 }
 
-export default function UserSync({ session }: UserSyncProps) {
+export default function UserSync({ session }: Props): JSX.Element | null {
   useEffect(() => {
-    const syncUser = async () => {
-      if (!session?.user) return
+    if (!session?.user) return
 
+    const syncUser = async () => {
       const { user } = session
 
       await supabase.from('users').upsert({
