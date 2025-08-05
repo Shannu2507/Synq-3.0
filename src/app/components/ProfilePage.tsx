@@ -9,23 +9,25 @@ export default function ProfilePage() {
   const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
-    const getUser = async () => {
+    const fetchPosts = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession()
-      setUserId(session?.user?.id ?? null)
-    }
 
-    const fetchPosts = async () => {
+      if (!session?.user) return
+
       const { data, error } = await supabase
         .from('posts')
         .select('*')
+        .eq('user_id', session.user.id)
         .order('created_at', { ascending: false })
 
-      if (!error) setPosts(data || [])
+      if (!error) {
+        setPosts(data || [])
+        setUserId(session.user.id)
+      }
     }
 
-    getUser()
     fetchPosts()
   }, [])
 
