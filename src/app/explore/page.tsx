@@ -1,9 +1,7 @@
-// app/explore/page.tsx
-
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import supabase from '../../lib/supabaseClient'
 import { formatDistanceToNow } from 'date-fns'
 
 export default function ExplorePage() {
