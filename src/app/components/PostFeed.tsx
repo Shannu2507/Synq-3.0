@@ -3,11 +3,20 @@
 import { useEffect, useState } from 'react'
 import supabase from '../../lib/supabaseClient'
 import { formatDistanceToNow } from 'date-fns'
+import LikeButton from './LikeButton'
 
 export default function PostFeed() {
   const [posts, setPosts] = useState<any[]>([])
+  const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      setUserId(session?.user?.id ?? null)
+    }
+
     const fetchPosts = async () => {
       const {
         data: { session },
@@ -24,6 +33,7 @@ export default function PostFeed() {
       if (!error) setPosts(data || [])
     }
 
+    getUser()
     fetchPosts()
   }, [])
 
@@ -38,6 +48,7 @@ export default function PostFeed() {
             {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
           </div>
           <p className="text-lg mt-2">{post.content}</p>
+          <LikeButton postId={post.id} userId={userId} />
         </div>
       ))}
     </div>
