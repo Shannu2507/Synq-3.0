@@ -1,55 +1,44 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Session } from '@supabase/supabase-js'
-import supabase from '@/lib/supabaseClient'
-import PostCard from './PostCard'
+import supabase from '../../lib/supabaseClient'
+import { formatDistanceToNow } from 'date-fns'
 
-type Post = {
-  id: string
-  content: string
-  created_at: string
-  user_id: string
-}
-
-type Like = {
-  id: string
-  post_id: string
-  user_id: string
-}
-
-type Comment = {
-  id: string
-  post_id: string
-  user_id: string
-  content: string
-  created_at: string
-}
-
-export default function PostFeed({ session }: { session: Session }) {
-  const [posts, setPosts] = useState<Post[]>([])
+export default function PostFeed() {
+  const [posts, setPosts] = useState<any[]>([])
 
   useEffect(() => {
+    const fetchPosts = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (!session?.user) return
+
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false })
+
+      if (!error) setPosts(data || [])
+    }
+
     fetchPosts()
   }, [])
 
-  const fetchPosts = async () => {
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching posts:', error)
-    } else {
-      setPosts(data as Post[])
-    }
-  }
-
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="space-y-4">
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} session={session} />
+        <div
+          key={post.id}
+          className="bg-zinc-900 p-4 rounded-xl shadow-md border border-zinc-700"
+        >
+          <div className="text-sm text-zinc-400">
+            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+          </div>
+          <p className="text-lg mt-2">{post.content}</p>
+        </div>
       ))}
     </div>
   )
