@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import supabase from '../../lib/supabaseClient'
 import { formatDistanceToNow } from 'date-fns'
+import LikeButton from '../components/LikeButton'
 
 export default function ExplorePage() {
   const [posts, setPosts] = useState<any[]>([])
@@ -68,6 +69,8 @@ export default function ExplorePage() {
                 })}
               </div>
               <p className="text-lg mt-2">{post.content}</p>
+
+              <LikeButton postId={post.id} userId={userId} />
 
               {userId === post.user_id && (
                 <button
