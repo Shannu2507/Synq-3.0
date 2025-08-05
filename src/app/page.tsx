@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Session } from '@supabase/supabase-js'
 import supabase from '../lib/supabaseClient'
+
 import Sidebar from './components/Sidebar'
 import TopNav from './components/TopNav'
 import CreatePost from './components/CreatePost'
@@ -11,7 +12,7 @@ import ExplorePage from './components/Explore'
 import ProfilePage from './components/ProfilePage'
 import UserSync from './components/UserSync'
 
-export default function HomePage() {
+export default function HomePage(): JSX.Element {
   const [session, setSession] = useState<Session | null>(null)
   const [page, setPage] = useState('home')
 
