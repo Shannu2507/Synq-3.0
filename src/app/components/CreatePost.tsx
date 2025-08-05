@@ -1,50 +1,56 @@
 'use client'
 
 import { useState } from 'react'
-import { Session } from '@supabase/supabase-js'
 import supabase from '../../lib/supabaseClient'
 
-type Props = {
-  session: Session
-  onPostCreated: () => void
-}
-
-export default function CreatePost({ session, onPostCreated }: Props) {
+export default function CreatePost({ onPostCreated }: { onPostCreated: () => void }) {
   const [content, setContent] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handlePost = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     if (!content.trim()) return
+
+    setLoading(true)
+    const user = (await supabase.auth.getUser()).data.user
+    if (!user) {
+      alert('Not logged in')
+      return
+    }
 
     const { error } = await supabase.from('posts').insert([
       {
         content,
-        user_id: session.user.id,
+        user_id: user.id,
+        username: user.user_metadata?.name || 'Anonymous',
       },
     ])
 
+    setLoading(false)
     if (!error) {
       setContent('')
       onPostCreated()
     } else {
-      console.error('Post error:', error)
+      alert('Error creating post')
     }
   }
 
   return (
-    <div className="p-4">
+    <form onSubmit={handleSubmit} className="mb-4">
       <textarea
-        className="w-full p-3 rounded-lg bg-zinc-800 text-white"
-        rows={3}
+        className="w-full p-2 rounded bg-zinc-900 text-white"
+        rows={4}
+        placeholder="What's on your mind?"
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="What's on your mind?"
       />
       <button
-        onClick={handlePost}
-        className="mt-2 px-4 py-2 bg-cyan-400 text-black rounded hover:bg-cyan-300 transition"
+        type="submit"
+        disabled={loading}
+        className="mt-2 px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600"
       >
-        Post
+        {loading ? 'Posting...' : 'Post'}
       </button>
-    </div>
+    </form>
   )
 }
