@@ -1,6 +1,6 @@
 'use client'
 
-import supabase from '@/lib/supabaseClient'
+import supabase from '../../lib/supabaseClient'
 
 export default function Login() {
   const handleLogin = async () => {
@@ -10,11 +10,13 @@ export default function Login() {
   }
 
   return (
-    <button
-      onClick={handleLogin}
-      className="px-4 py-2 bg-white text-black rounded hover:bg-gray-200 transition"
-    >
-      Sign in with Google
-    </button>
+    <div className="flex justify-center items-center h-screen bg-black text-white">
+      <button
+        onClick={handleLogin}
+        className="bg-white text-black px-6 py-3 rounded-xl font-semibold hover:bg-zinc-200 transition"
+      >
+        Sign in with Google
+      </button>
+    </div>
   )
 }
