@@ -1,56 +1,60 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Session } from '@supabase/supabase-js'
-import supabase from '@/lib/supabaseClient'
-import PostCard from './PostCard'
+import supabase from '../../lib/supabaseClient'
+import { formatDistanceToNow } from 'date-fns'
 
-interface Props {
-  session: Session
-}
-
-export default function ProfilePage({ session }: Props) {
+export default function ProfilePage() {
   const [posts, setPosts] = useState<any[]>([])
-  const [username, setUsername] = useState<string>('')
+  const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchUserAndPosts = async () => {
-      if (!session) return
-
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('username')
-        .eq('id', session.user.id)
-        .single()
-
-      if (!userError && userData) {
-        setUsername(userData.username)
-      }
-
-      const { data: postsData, error: postsError } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false })
-
-      if (!postsError && postsData) {
-        setPosts(postsData)
-      }
+    const getUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      setUserId(session?.user?.id ?? null)
     }
 
-    fetchUserAndPosts()
-  }, [session])
+    const fetchPosts = async () => {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (!error) setPosts(data || [])
+    }
+
+    getUser()
+    fetchPosts()
+  }, [])
+
+  const handleDelete = async (postId: string) => {
+    const { error } = await supabase.from('posts').delete().eq('id', postId)
+    if (!error) setPosts((prev) => prev.filter((p) => p.id !== postId))
+  }
 
   return (
-    <div className="p-6 text-white">
-      <h1 className="text-3xl font-bold mb-4">Profile</h1>
-      <p className="mb-2 text-lg">Username: {username}</p>
-      <h2 className="text-xl font-bold mb-4">Your Posts</h2>
-      <div className="flex flex-col gap-4">
-        {posts.map((post) => (
-          <PostCard key={post.id} post={post} session={session} />
-        ))}
-      </div>
+    <div className="space-y-4">
+      {posts.map((post) => (
+        <div
+          key={post.id}
+          className="bg-zinc-900 p-4 rounded-xl shadow-md border border-zinc-700"
+        >
+          <div className="text-sm text-zinc-400">
+            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+          </div>
+          <p className="text-lg mt-2">{post.content}</p>
+          {userId === post.user_id && (
+            <button
+              onClick={() => handleDelete(post.id)}
+              className="mt-3 text-red-500 text-sm hover:underline"
+            >
+              Delete Post
+            </button>
+          )}
+        </div>
+      ))}
     </div>
   )
 }
