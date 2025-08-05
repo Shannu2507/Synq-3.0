@@ -1,10 +1,20 @@
-import "./styles/globals.css";
-import { ReactNode } from "react";
+// src/app/layout.tsx
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+import './styles/globals.css'
+import TopNav from './components/TopNav'
+
+export const metadata = {
+  title: 'Synq',
+  description: 'Built by Silent Alpha',
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-black text-white">
+        <TopNav />
+        <main className="p-4">{children}</main>
+      </body>
     </html>
-  );
+  )
 }
