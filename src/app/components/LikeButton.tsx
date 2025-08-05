@@ -1,20 +1,66 @@
-import LikeButton from './LikeButton' // or '../components/LikeButton' depending on location
+'use client'
 
-...
+import { useEffect, useState } from 'react'
+import supabase from '../../lib/supabaseClient'
 
-{posts.map((post) => (
-  <div key={post.id} className="bg-zinc-900 p-4 rounded-xl border border-zinc-700">
-    <div className="text-sm text-zinc-400">
-      @{post.username} • {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-    </div>
-    <p className="text-lg mt-2">{post.content}</p>
+type Props = {
+  postId: string
+  userId: string | null
+}
 
-    <LikeButton postId={post.id} userId={userId} />
+export default function LikeButton({ postId, userId }: Props) {
+  const [liked, setLiked] = useState(false)
+  const [likeCount, setLikeCount] = useState(0)
 
-    {userId === post.user_id && (
-      <button onClick={() => handleDelete(post.id)} className="mt-3 text-red-500 text-sm hover:underline">
-        Delete Post
-      </button>
-    )}
-  </div>
-))}
+  useEffect(() => {
+    const fetchLikes = async () => {
+      const { data, error } = await supabase
+        .from('likes')
+        .select('*')
+        .eq('post_id', postId)
+
+      if (!error && data) {
+        setLikeCount(data.length)
+        setLiked(data.some((like) => like.user_id === userId))
+      }
+    }
+
+    fetchLikes()
+  }, [postId, userId])
+
+  const toggleLike = async () => {
+    if (!userId) return
+
+    if (liked) {
+      const { error } = await supabase
+        .from('likes')
+        .delete()
+        .eq('post_id', postId)
+        .eq('user_id', userId)
+
+      if (!error) {
+        setLiked(false)
+        setLikeCount((count) => count - 1)
+      }
+    } else {
+      const { error } = await supabase.from('likes').insert({
+        post_id: postId,
+        user_id: userId,
+      })
+
+      if (!error) {
+        setLiked(true)
+        setLikeCount((count) => count + 1)
+      }
+    }
+  }
+
+  return (
+    <button
+      onClick={toggleLike}
+      className={`mt-2 text-sm ${liked ? 'text-pink-400' : 'text-white'} hover:underline`}
+    >
+      {liked ? '♥' : '♡'} {likeCount}
+    </button>
+  )
+}
