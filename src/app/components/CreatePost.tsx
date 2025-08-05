@@ -1,44 +1,45 @@
 'use client'
 
 import { useState } from 'react'
-import supabase from '@/lib/supabaseClient'
-import { Session } from '@supabase/supabase-js'
+import supabase from '../../lib/supabaseClient'
 
-type Props = {
-  session: Session
-}
-
-export default function CreatePost({ session }: Props) {
+export default function CreatePost({ onPostCreated }: { onPostCreated: () => void }) {
   const [content, setContent] = useState('')
-  const [loading, setLoading] = useState(false)
 
   const handlePost = async () => {
-    if (!content.trim()) return
+    if (content.trim().length === 0) return
 
-    setLoading(true)
-    await supabase.from('posts').insert({
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (!session?.user) return
+
+    const { error } = await supabase.from('posts').insert({
       content,
       user_id: session.user.id,
-      username: session.user.user_metadata.name,
+      username: session.user.user_metadata.full_name || 'anonymous',
     })
-    setContent('')
-    setLoading(false)
+
+    if (!error) {
+      setContent('')
+      onPostCreated()
+    }
   }
 
   return (
-    <div className="p-4 border-b border-gray-700">
+    <div className="bg-zinc-900 p-4 rounded-xl border border-zinc-700 mb-4">
       <textarea
-        className="w-full p-2 rounded bg-gray-900 text-white border border-gray-700"
         placeholder="What's on your mind?"
+        className="w-full bg-transparent border-none focus:outline-none text-white resize-none"
         value={content}
         onChange={(e) => setContent(e.target.value)}
       />
       <button
-        className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
         onClick={handlePost}
-        disabled={loading}
+        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
       >
-        {loading ? 'Posting...' : 'Post'}
+        Post
       </button>
     </div>
   )
