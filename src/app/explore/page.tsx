@@ -4,15 +4,21 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { useSession } from '@/lib/sessionContext'
 import { formatDistanceToNow } from 'date-fns'
 
 export default function ExplorePage() {
-  const { session } = useSession()
   const [posts, setPosts] = useState<any[]>([])
+  const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      setUserId(session?.user?.id ?? null)
+    }
+
     const fetchPosts = async () => {
       setLoading(true)
       const { data, error } = await supabase
@@ -29,6 +35,7 @@ export default function ExplorePage() {
       setLoading(false)
     }
 
+    getUser()
     fetchPosts()
   }, [])
 
@@ -64,7 +71,7 @@ export default function ExplorePage() {
               </div>
               <p className="text-lg mt-2">{post.content}</p>
 
-              {session?.user?.id === post.user_id && (
+              {userId === post.user_id && (
                 <button
                   onClick={() => handleDelete(post.id)}
                   className="mt-3 text-red-500 text-sm hover:underline"
