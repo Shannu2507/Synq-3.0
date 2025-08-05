@@ -5,7 +5,7 @@ import { Session } from '@supabase/supabase-js';
 import CreatePost from './components/CreatePost';
 import PostFeed from './components/PostFeed';
 import TopNav from './components/TopNav';
-import ProfilePage from './profile/ProfilePage';
+import ProfilePage from './components/ProfilePage';
 import { supabase } from '../lib/supabaseClient';
 
 export default function Home() {
