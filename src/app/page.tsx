@@ -6,7 +6,7 @@ import CreatePost from './components/CreatePost';
 import PostFeed from './components/PostFeed';
 import TopNav from './components/TopNav';
 import ProfilePage from './components/ProfilePage';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient';
 
 export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
