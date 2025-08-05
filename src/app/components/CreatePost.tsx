@@ -1,45 +1,50 @@
 'use client'
 
 import { useState } from 'react'
-import supabase from '../../lib/supabaseClient'
+import { Session } from '@supabase/supabase-js'
+import supabase from '../../../lib/supabaseClient'
 
-export default function CreatePost({ onPostCreated }: { onPostCreated: () => void }) {
+type Props = {
+  session: Session | null
+  onPostCreated?: () => void
+}
+
+export default function CreatePost({ session, onPostCreated }: Props) {
   const [content, setContent] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handlePost = async () => {
-    if (content.trim().length === 0) return
+  const handleSubmit = async () => {
+    if (!content.trim() || !session) return
+    setLoading(true)
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+    const { error } = await supabase.from('posts').insert([
+      {
+        content,
+        user_id: session.user.id,
+        username: session.user.user_metadata.name || 'Anonymous',
+      },
+    ])
 
-    if (!session?.user) return
-
-    const { error } = await supabase.from('posts').insert({
-      content,
-      user_id: session.user.id,
-      username: session.user.user_metadata.full_name || 'anonymous',
-    })
-
-    if (!error) {
-      setContent('')
-      onPostCreated()
-    }
+    setLoading(false)
+    setContent('')
+    if (!error && onPostCreated) onPostCreated()
   }
 
   return (
-    <div className="bg-zinc-900 p-4 rounded-xl border border-zinc-700 mb-4">
+    <div className="p-4 border-b border-zinc-800">
       <textarea
-        placeholder="What's on your mind?"
-        className="w-full bg-transparent border-none focus:outline-none text-white resize-none"
         value={content}
         onChange={(e) => setContent(e.target.value)}
+        placeholder="What's on your mind?"
+        className="w-full p-3 rounded-lg bg-zinc-900 border border-zinc-700 text-white"
+        rows={3}
       />
       <button
-        onClick={handlePost}
-        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+        onClick={handleSubmit}
+        disabled={loading}
+        className="mt-2 px-4 py-2 bg-cyan-500 rounded hover:bg-cyan-600 disabled:opacity-50"
       >
-        Post
+        {loading ? 'Posting...' : 'Post'}
       </button>
     </div>
   )
