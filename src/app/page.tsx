@@ -5,7 +5,7 @@ import { Session } from '@supabase/supabase-js';
 import supabase from '../../lib/supabaseClient'; // ✅ fixed path
 import TopNav from './components/TopNav';
 import ProfilePage from './components/ProfilePage';
-import ExplorePage from './components/ExplorePage';
+import ExplorePage from './components/explore/page'; // ✅ based on explore/page.tsx
 
 export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
