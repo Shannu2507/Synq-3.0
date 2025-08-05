@@ -1,30 +1,27 @@
 'use client'
 
-import { Session } from '@supabase/supabase-js'
 import { useEffect } from 'react'
-import supabase from '@/lib/supabaseClient'
+import supabase from '../../lib/supabaseClient'
 
-type Props = {
-  session: Session
-}
-
-export default function UserSync({ session }: Props) {
+export default function UserSync() {
   useEffect(() => {
-    if (!session) return
-
     const syncUser = async () => {
-      const user = session.user
-      const { error } = await supabase
-        .from('users')
-        .upsert({ id: user.id, email: user.email })
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
 
-      if (error) {
-        console.error('Error syncing user:', error.message)
-      }
+      if (!session?.user) return
+
+      const { id, user_metadata } = session.user
+
+      await supabase.from('users').upsert({
+        id,
+        username: user_metadata.full_name || 'anonymous',
+      })
     }
 
     syncUser()
-  }, [session])
+  }, [])
 
   return null
 }
