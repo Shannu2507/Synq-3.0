@@ -1,69 +1,87 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Session } from '@supabase/supabase-js'
-import supabase from '../lib/supabaseClient'
-
-import Sidebar from './components/Sidebar'
-import TopNav from './components/TopNav'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { Session } from '@supabase/auth-helpers-nextjs'
 import CreatePost from './components/CreatePost'
 import PostFeed from './components/PostFeed'
-import ExplorePage from './components/Explore'
-import ProfilePage from './components/ProfilePage'
+import TopNav from './components/TopNav'
+import Login from './components/Login'
 import UserSync from './components/UserSync'
 
-export default function HomePage(): JSX.Element {
+export default function HomePage() {
   const [session, setSession] = useState<Session | null>(null)
-  const [page, setPage] = useState('home')
+  const [posts, setPosts] = useState<any[]>([])
+  const [page, setPage] = useState<'home' | 'explore' | 'profile'>('home')
+
+  const supabase = createClientComponentClient()
 
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
       setSession(session)
     }
 
     getSession()
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-
-    return () => {
-      listener.subscription.unsubscribe()
-    }
   }, [])
 
+  useEffect(() => {
+    if (page === 'home') {
+      fetchPosts()
+    }
+  }, [page])
+
+  const fetchPosts = async () => {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (!error && data) {
+      setPosts(data)
+    }
+  }
+
   if (!session) {
-    return (
-      <main className="flex justify-center items-center min-h-screen bg-black text-white">
-        <div>
-          <h1 className="text-2xl mb-4">Welcome to Synq</h1>
-          <a
-            href="/login"
-            className="px-4 py-2 bg-white text-black rounded hover:bg-gray-200 transition"
-          >
-            Sign in with Google
-          </a>
-        </div>
-      </main>
-    )
+    return <Login />
   }
 
   return (
-    <main className="flex min-h-screen bg-black text-white">
-      <Sidebar onNavigate={setPage} currentPage={page} />
+    <div className="flex flex-col h-screen bg-black text-white">
       <div className="flex-1 flex flex-col relative">
         <TopNav />
         <UserSync session={session} />
+
         {page === 'home' && (
           <>
-            <CreatePost session={session} />
+            <CreatePost session={session} onPostCreated={() => fetchPosts()} />
             <PostFeed session={session} />
           </>
         )}
-        {page === 'explore' && <ExplorePage />}
-        {page === 'profile' && <ProfilePage session={session} />}
       </div>
-    </main>
+
+      <footer className="flex justify-around border-t border-white/10 py-2">
+        <button
+          className={`text-sm ${page === 'home' ? 'text-cyan-400' : 'text-white/50'}`}
+          onClick={() => setPage('home')}
+        >
+          Home
+        </button>
+        <button
+          className={`text-sm ${page === 'explore' ? 'text-cyan-400' : 'text-white/50'}`}
+          onClick={() => setPage('explore')}
+        >
+          Explore
+        </button>
+        <button
+          className={`text-sm ${page === 'profile' ? 'text-cyan-400' : 'text-white/50'}`}
+          onClick={() => setPage('profile')}
+        >
+          Profile
+        </button>
+      </footer>
+    </div>
   )
 }
