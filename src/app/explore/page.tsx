@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import supabase from '../../../lib/supabaseClient'; // ✅ fixed path
+import supabase from '../../lib/supabaseClient'; // ✅ fixed path
 import { formatDistanceToNow } from 'date-fns';
 import LikeButton from '../components/LikeButton';
 
