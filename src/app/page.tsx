@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { Session } from '@supabase/auth-helpers-nextjs'
+import { Session } from '@supabase/supabase-js'
+import { supabase } from '../lib/supabaseClient'
 import CreatePost from './components/CreatePost'
 import PostFeed from './components/PostFeed'
 import TopNav from './components/TopNav'
@@ -13,8 +13,6 @@ export default function HomePage() {
   const [session, setSession] = useState<Session | null>(null)
   const [posts, setPosts] = useState<any[]>([])
   const [page, setPage] = useState<'home' | 'explore' | 'profile'>('home')
-
-  const supabase = createClientComponentClient()
 
   useEffect(() => {
     const getSession = async () => {
@@ -56,7 +54,7 @@ export default function HomePage() {
 
         {page === 'home' && (
           <>
-            <CreatePost session={session} onPostCreated={() => fetchPosts()} />
+            <CreatePost session={session} onPostCreated={fetchPosts} />
             <PostFeed session={session} />
           </>
         )}
