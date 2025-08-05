@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
-import supabase from '../lib/supabaseClient'; // ✅ fixed path
+import supabase from '../lib/supabaseClient'; // ✅ correct path
 import TopNav from './components/TopNav';
 import ProfilePage from './components/ProfilePage';
 
@@ -42,7 +42,7 @@ export default function Home() {
         </div>
       ) : (
         <div className="p-4">
-          <ProfilePage />
+          <ProfilePage session={session} /> {/* ✅ fixed here */}
         </div>
       )}
     </div>
