@@ -1,39 +1,81 @@
+// app/explore/page.tsx
+
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Session } from '@supabase/supabase-js'
-import supabase from '@/lib/supabaseClient'
-import PostCard from '../components/PostCard'
+import { supabase } from '@/lib/supabaseClient'
+import { useSession } from '@/lib/sessionContext'
+import { formatDistanceToNow } from 'date-fns'
 
 export default function ExplorePage() {
+  const { session } = useSession()
   const [posts, setPosts] = useState<any[]>([])
-  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setSession(session)
+    const fetchPosts = async () => {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('posts')
+        .select('id, content, created_at, user_id, username')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching posts:', error)
+      } else {
+        setPosts(data || [])
+      }
+
+      setLoading(false)
     }
 
-    getSession()
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-
-    return () => {
-      listener.subscription.unsubscribe()
-    }
+    fetchPosts()
   }, [])
 
+  const handleDelete = async (postId: string) => {
+    const { error } = await supabase.from('posts').delete().eq('id', postId)
+    if (error) {
+      console.error('Delete failed:', error)
+    } else {
+      setPosts((prev) => prev.filter((post) => post.id !== postId))
+    }
+  }
+
   return (
-    <div className="p-6 text-white">
-      <h2 className="text-xl font-bold mb-4">Explore</h2>
-      <div className="flex flex-col gap-4">
-        {posts.map((post) => (
-          <PostCard key={post.id} post={post} session={session} />
-        ))}
-      </div>
+    <div className="min-h-screen bg-black text-white p-4">
+      <h1 className="text-2xl font-bold mb-6">Explore</h1>
+
+      {loading ? (
+        <p>Loading posts...</p>
+      ) : posts.length === 0 ? (
+        <p>No posts yet.</p>
+      ) : (
+        <div className="space-y-4">
+          {posts.map((post) => (
+            <div
+              key={post.id}
+              className="bg-zinc-900 p-4 rounded-xl shadow-md border border-zinc-700"
+            >
+              <div className="text-sm text-zinc-400">
+                @{post.username} •{' '}
+                {formatDistanceToNow(new Date(post.created_at), {
+                  addSuffix: true,
+                })}
+              </div>
+              <p className="text-lg mt-2">{post.content}</p>
+
+              {session?.user?.id === post.user_id && (
+                <button
+                  onClick={() => handleDelete(post.id)}
+                  className="mt-3 text-red-500 text-sm hover:underline"
+                >
+                  Delete Post
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
